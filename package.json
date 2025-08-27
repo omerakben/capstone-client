@@ -6,7 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "tsc --noEmit",
+    "qa": "npm run lint && npm run typecheck && npm run build"
   },
   "dependencies": {
     "react": "19.1.0",
