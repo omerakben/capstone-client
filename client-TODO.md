@@ -13,14 +13,14 @@ This frontend implementation uses Next.js 15+ with App Router for the DEADLINE d
    [x] fe-setup-sub_task-004 — Verify dev server runs on localhost:3000 with no errors
 
 [ ] fe-setup-task-002 [build] [S] — Configure Tailwind CSS v4 with design system
-   [ ] fe-setup-sub_task-001 — Install Tailwind CSS v4 (or v3.x fallback) with PostCSS and autoprefixer
-   [ ] fe-setup-sub_task-002 — Create design tokens for spacing (4/6/8), colors (neutral palette), and typography
-   [ ] fe-setup-sub_task-003 — Configure global styles in app/globals.css with base component classes
+   [x] fe-setup-sub_task-001 — Install Tailwind CSS v4 (or v3.x fallback) with PostCSS and autoprefixer
+   [x] fe-setup-sub_task-002 — Create design tokens for spacing (4/6/8), colors (neutral palette), and typography
+   [x] fe-setup-sub_task-003 — Configure global styles in app/globals.css with base component classes
 
 [ ] fe-setup-task-003 [build] [S] — Install and configure essential dependencies
-   [ ] fe-setup-sub_task-001 — Install lucide-react for icons, axios for API calls, react-hook-form for forms
-   [ ] fe-setup-sub_task-002 — Install firebase and firebase-admin SDK packages
-   [ ] fe-setup-sub_task-003 — Configure TypeScript paths in tsconfig.json for @ imports
+   [x] fe-setup-sub_task-001 — Install lucide-react for icons, axios for API calls, react-hook-form for forms
+   [x] fe-setup-sub_task-002 — Install firebase and firebase-admin SDK packages (firebase-admin skipped client-side)
+   [x] fe-setup-sub_task-003 — Configure TypeScript paths in tsconfig.json for @ imports
 
 [ ] fe-auth-task-001 [build] [L] — Implement Firebase Authentication integration
    [ ] fe-auth-sub_task-001 — Create AuthContext provider with login/logout/signup methods

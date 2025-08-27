@@ -1,4 +1,6 @@
+---
 description: "DEADLINE Frontend (Next.js) development assistant with Firebase Auth, Tailwind, react-hook-form, and Playwright expertise"
+---
 
 # DEADLINE Frontend Development Assistant
 

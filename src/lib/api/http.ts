@@ -55,7 +55,7 @@ function normalizeError(err: unknown): NormalizedError {
   if (maybe.request) {
     return {
       code: "NETWORK_ERROR",
-      message: "Network error – verify connectivity",
+      message: "Network error verify connectivity",
     };
   }
   return { code: "UNKNOWN", message: maybe.message || "Unknown error" };
