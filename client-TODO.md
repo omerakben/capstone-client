@@ -7,10 +7,10 @@ This frontend implementation uses Next.js 15+ with App Router for the DEADLINE d
 ## Checklist
 
 [ ] fe-setup-task-001 [plan] [M] — Initialize Next.js 15+ project with App Router
-   [ ] fe-setup-sub_task-001 — Run create-next-app with TypeScript, Tailwind CSS, and App Router enabled
-   [ ] fe-setup-sub_task-002 — Configure src/ directory structure with app/, components/, lib/, hooks/ folders
-   [ ] fe-setup-sub_task-003 — Set up environment variables for Firebase config and API base URL
-   [ ] fe-setup-sub_task-004 — Verify dev server runs on localhost:3000 with no errors
+   [x] fe-setup-sub_task-001 — Run create-next-app with TypeScript, Tailwind CSS, and App Router enabled
+   [x] fe-setup-sub_task-002 — Configure src/ directory structure with app/, components/, lib/, hooks/ folders
+   [x] fe-setup-sub_task-003 — Set up environment variables for Firebase config and API base URL
+   [x] fe-setup-sub_task-004 — Verify dev server runs on localhost:3000 with no errors
 
 [ ] fe-setup-task-002 [build] [S] — Configure Tailwind CSS v4 with design system
    [ ] fe-setup-sub_task-001 — Install Tailwind CSS v4 (or v3.x fallback) with PostCSS and autoprefixer
@@ -30,7 +30,7 @@ This frontend implementation uses Next.js 15+ with App Router for the DEADLINE d
 
 [ ] fe-auth-task-002 [build] [M] — Create auth flow components
    [ ] fe-auth-sub_task-001 — Build AuthGuard wrapper component for protected pages
-   [holm fe-auth-sub_task-002 — Implement token refresh logic with axios interceptors
+   [ ] fe-auth-sub_task-002 — Implement token refresh logic with axios interceptors
    [ ] fe-auth-sub_task-003 — Add loading states during auth verification
 
 [ ] fe-pages-task-001 [build] [M] — Implement Dashboard page (deps: fe-auth-task-001)
@@ -103,10 +103,10 @@ This frontend implementation uses Next.js 15+ with App Router for the DEADLINE d
    [ ] fe-state-sub_task-003 — Implement cross-environment duplication logic
 
 [ ] fe-api-task-001 [build] [M] — Configure API client
-   [ ] fe-api-sub_task-001 — Set up axios instance with base URL and auth headers
-   [ ] fe-api-sub_task-002 — Create API service modules for workspaces, artifacts, docs
-   [ ] fe-api-sub_task-003 — Implement request/response interceptors for token handling
-   [ ] fe-api-sub_task-004 — Add TypeScript interfaces for all API responses
+   [x] fe-api-sub_task-001 — Set up axios instance with base URL and auth headers
+   [x] fe-api-sub_task-002 — Create API service modules for workspaces, artifacts, docs
+   [ ] fe-api-sub_task-003 — Implement request/response interceptors for token handling (refresh logic pending)
+   [x] fe-api-sub_task-004 — Add TypeScript interfaces for all API responses
 
 [ ] fe-api-task-002 [build] [S] — Handle API errors gracefully
    [ ] fe-api-sub_task-001 — Create centralized error handler with toast notifications
