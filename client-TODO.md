@@ -22,15 +22,15 @@ This frontend implementation uses Next.js 15+ with App Router for the DEADLINE d
    [x] fe-setup-sub_task-002 — Install firebase and firebase-admin SDK packages (firebase-admin skipped client-side)
    [x] fe-setup-sub_task-003 — Configure TypeScript paths in tsconfig.json for @ imports
 
-[ ] fe-auth-task-001 [build] [L] — Implement Firebase Authentication integration
-   [ ] fe-auth-sub_task-001 — Create AuthContext provider with login/logout/signup methods
-   [ ] fe-auth-sub_task-002 — Implement useAuth hook for accessing auth state and user info
-   [ ] fe-auth-sub_task-003 — Build login/signup page components at app/(auth)/login/page.tsx
-   [ ] fe-auth-sub_task-004 — Add middleware.ts for route protection checking Firebase tokens
+[x] fe-auth-task-001 [build] [L] — Implement Firebase Authentication integration
+   [x] fe-auth-sub_task-001 — Create AuthContext provider with login/logout/signup methods
+   [x] fe-auth-sub_task-002 — Implement useAuth hook for accessing auth state and user info
+   [x] fe-auth-sub_task-003 — Build login/signup page components at app/(auth)/login/page.tsx
+   [x] fe-auth-sub_task-004 — Add middleware.ts for route protection checking Firebase tokens
 
 [ ] fe-auth-task-002 [build] [M] — Create auth flow components
    [ ] fe-auth-sub_task-001 — Build AuthGuard wrapper component for protected pages
-   [ ] fe-auth-sub_task-002 — Implement token refresh logic with axios interceptors
+   [x] fe-auth-sub_task-002 — Implement token refresh logic with axios interceptors
    [ ] fe-auth-sub_task-003 — Add loading states during auth verification
 
 [ ] fe-pages-task-001 [build] [M] — Implement Dashboard page (deps: fe-auth-task-001)

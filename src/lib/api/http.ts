@@ -5,8 +5,18 @@ const baseURL =
 
 export const http = axios.create({ baseURL });
 
-// Token injector (will be wired with AuthContext later)
-export function attachAuth(getToken: () => Promise<string | null>) {
+// Token injector and response interceptor setup
+let signOutCallback: (() => Promise<void>) | null = null;
+
+export function attachAuth(
+  getToken: () => Promise<string | null>,
+  signOut?: () => Promise<void>
+) {
+  // Store signOut callback for 401 handling
+  if (signOut) {
+    signOutCallback = signOut;
+  }
+
   http.interceptors.request.use(async (config) => {
     const token = await getToken();
     if (token) {
@@ -17,9 +27,32 @@ export function attachAuth(getToken: () => Promise<string | null>) {
   });
 
   http.interceptors.response.use(
-    (r) => r,
+    (response) => response,
     async (error) => {
-      // Placeholder for refresh / sign-out logic implemented later
+      // Handle 401 Unauthorized errors
+      if (error.response?.status === 401 && signOutCallback) {
+        try {
+          // Try to get a fresh token first
+          const freshToken = await getToken();
+          if (!freshToken) {
+            // No token available, sign out
+            await signOutCallback();
+            return Promise.reject(normalizeError(error));
+          }
+
+          // Retry the original request with fresh token
+          const originalRequest = error.config;
+          if (originalRequest && !originalRequest._retry) {
+            originalRequest._retry = true;
+            originalRequest.headers.Authorization = `Bearer ${freshToken}`;
+            return http(originalRequest);
+          }
+        } catch {
+          // Token refresh failed, sign out user
+          await signOutCallback();
+        }
+      }
+
       return Promise.reject(normalizeError(error));
     }
   );

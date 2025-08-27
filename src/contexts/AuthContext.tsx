@@ -1,6 +1,7 @@
 "use client";
 import { getFirebaseAuth } from "@/lib/firebase/client";
 import {
+  createUserWithEmailAndPassword,
   signOut as fbSignOut,
   getIdToken,
   onAuthStateChanged,
@@ -20,6 +21,7 @@ interface AuthContextValue {
   user: User | null;
   loading: boolean;
   signIn(email: string, password: string): Promise<void>;
+  signUp(email: string, password: string): Promise<void>;
   signOut(): Promise<void>;
   getIdToken(force?: boolean): Promise<string | null>;
 }
@@ -46,6 +48,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const signIn = useCallback(
     async (email: string, password: string) => {
       await signInWithEmailAndPassword(auth, email, password);
+    },
+    [auth]
+  );
+
+  const signUp = useCallback(
+    async (email: string, password: string) => {
+      await createUserWithEmailAndPassword(auth, email, password);
     },
     [auth]
   );
@@ -83,6 +92,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     user,
     loading,
     signIn,
+    signUp,
     signOut,
     getIdToken: getTokenCached,
   };
