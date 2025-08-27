@@ -1,4 +1,21 @@
 "use client";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { redirect } from "next/navigation";
 import { useState } from "react";
@@ -12,12 +29,18 @@ interface FormValues {
 export default function LoginPage() {
   const { user, signIn, signUp, loading } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
+  const methods = useForm<FormValues>({
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
   const {
-    register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { isSubmitting },
     setError,
-  } = useForm<FormValues>();
+  } = methods;
 
   if (!loading && user) {
     redirect("/dashboard");
@@ -51,91 +74,105 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="max-w-sm mx-auto mt-16 p-6 card">
-      <div className="text-center mb-6">
-        <h1 className="text-xl font-semibold mb-2">
-          {isSignUp ? "Create Account" : "Sign In"}
-        </h1>
-        <p className="text-sm text-gray-600">
-          {isSignUp
-            ? "Join DEADLINE to manage your artifacts"
-            : "Welcome back to DEADLINE"}
-        </p>
-      </div>
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-neutral-50 to-neutral-100 p-4">
+      <Card className="w-full max-w-md shadow-lg">
+        <CardHeader className="space-y-2 text-center">
+          <CardTitle className="text-2xl font-bold tracking-tight">
+            {isSignUp ? "Create Account" : "Welcome Back"}
+          </CardTitle>
+          <CardDescription className="text-neutral-600">
+            {isSignUp
+              ? "Join DEADLINE to manage your development artifacts"
+              : "Sign in to access your DEADLINE workspace"}
+          </CardDescription>
+        </CardHeader>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div>
-          <label className="field-label" htmlFor="email">
-            Email
-          </label>
-          <input
-            id="email"
-            type="email"
-            className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            autoComplete="username"
-            {...register("email", {
-              required: "Email required",
-              pattern: {
-                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                message: "Invalid email address",
-              },
-            })}
-          />
-          {errors.email && (
-            <p className="field-error" role="alert">
-              {errors.email.message}
-            </p>
-          )}
-        </div>
-        <div>
-          <label className="field-label" htmlFor="password">
-            Password
-          </label>
-          <input
-            id="password"
-            type="password"
-            className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            autoComplete={isSignUp ? "new-password" : "current-password"}
-            {...register("password", {
-              required: "Password required",
-              minLength: isSignUp
-                ? {
-                    value: 6,
-                    message: "Password must be at least 6 characters",
-                  }
-                : undefined,
-            })}
-          />
-          {errors.password && (
-            <p className="field-error" role="alert">
-              {errors.password.message}
-            </p>
-          )}
-        </div>
-        <button
-          disabled={isSubmitting}
-          className="btn btn-primary w-full"
-          type="submit"
-        >
-          {isSubmitting
-            ? "Please wait..."
-            : isSignUp
-            ? "Create Account"
-            : "Sign In"}
-        </button>
-      </form>
+        <CardContent>
+          <Form {...methods}>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={methods.control}
+                name="email"
+                rules={{
+                  required: "Email is required",
+                  pattern: {
+                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                    message: "Invalid email address",
+                  },
+                }}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="email"
+                        placeholder="name@example.com"
+                        autoComplete="username"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-      <div className="mt-6 text-center">
-        <button
-          type="button"
-          onClick={() => setIsSignUp(!isSignUp)}
-          className="text-sm text-blue-600 hover:text-blue-800 underline"
-        >
-          {isSignUp
-            ? "Already have an account? Sign in"
-            : "Need an account? Sign up"}
-        </button>
-      </div>
-    </main>
+              <FormField
+                control={methods.control}
+                name="password"
+                rules={{
+                  required: "Password is required",
+                  ...(isSignUp && {
+                    minLength: {
+                      value: 6,
+                      message: "Password must be at least 6 characters",
+                    },
+                  }),
+                }}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="Enter your password"
+                        autoComplete={
+                          isSignUp ? "new-password" : "current-password"
+                        }
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Button
+                type="submit"
+                className="w-full h-10"
+                disabled={isSubmitting}
+              >
+                {isSubmitting
+                  ? "Please wait..."
+                  : isSignUp
+                  ? "Create Account"
+                  : "Sign In"}
+              </Button>
+            </form>
+          </Form>
+
+          <div className="mt-6 text-center">
+            <Button
+              variant="ghost"
+              onClick={() => setIsSignUp(!isSignUp)}
+              className="text-sm text-neutral-600 hover:text-neutral-900"
+            >
+              {isSignUp
+                ? "Already have an account? Sign in"
+                : "Need an account? Sign up"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
