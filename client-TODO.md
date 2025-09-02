@@ -6,18 +6,18 @@ This frontend implementation uses Next.js 15+ with App Router for the DEADLINE d
 
 ## Checklist
 
-[ ] fe-setup-task-001 [plan] [M] — Initialize Next.js 15+ project with App Router
+[x] fe-setup-task-001 [plan] [M] — Initialize Next.js 15+ project with App Router
    [x] fe-setup-sub_task-001 — Run create-next-app with TypeScript, Tailwind CSS, and App Router enabled
    [x] fe-setup-sub_task-002 — Configure src/ directory structure with app/, components/, lib/, hooks/ folders
    [x] fe-setup-sub_task-003 — Set up environment variables for Firebase config and API base URL
    [x] fe-setup-sub_task-004 — Verify dev server runs on localhost:3000 with no errors
 
-[ ] fe-setup-task-002 [build] [S] — Configure Tailwind CSS v4 with design system
+[x] fe-setup-task-002 [build] [S] — Configure Tailwind CSS v4 with design system
    [x] fe-setup-sub_task-001 — Install Tailwind CSS v4 (or v3.x fallback) with PostCSS and autoprefixer
    [x] fe-setup-sub_task-002 — Create design tokens for spacing (4/6/8), colors (neutral palette), and typography
    [x] fe-setup-sub_task-003 — Configure global styles in app/globals.css with base component classes
 
-[ ] fe-setup-task-003 [build] [S] — Install and configure essential dependencies
+[x] fe-setup-task-003 [build] [S] — Install and configure essential dependencies
    [x] fe-setup-sub_task-001 — Install lucide-react for icons, axios for API calls, react-hook-form for forms
    [x] fe-setup-sub_task-002 — Install firebase and firebase-admin SDK packages (firebase-admin skipped client-side)
    [x] fe-setup-sub_task-003 — Configure TypeScript paths in tsconfig.json for @ imports
@@ -29,15 +29,15 @@ This frontend implementation uses Next.js 15+ with App Router for the DEADLINE d
    [x] fe-auth-sub_task-004 — Add middleware.ts for route protection checking Firebase tokens
 
 [ ] fe-auth-task-002 [build] [M] — Create auth flow components
-   [ ] fe-auth-sub_task-001 — Build AuthGuard wrapper component for protected pages
+   [x] fe-auth-sub_task-001 — Build AuthGuard wrapper component for protected pages
    [x] fe-auth-sub_task-002 — Implement token refresh logic with axios interceptors
-   [ ] fe-auth-sub_task-003 — Add loading states during auth verification
+   [x] fe-auth-sub_task-003 — Add loading states during auth verification
 
 [ ] fe-pages-task-001 [build] [M] — Implement Dashboard page (deps: fe-auth-task-001)
-   [ ] fe-pages-sub_task-001 — Create app/dashboard/page.tsx with recent workspaces grid
-   [ ] fe-pages-sub_task-002 — Add Quick Actions section with New Workspace and New Prompt buttons
-   [ ] fe-pages-sub_task-003 — Implement global search bar component with debounced input
-   [ ] fe-pages-sub_task-004 — Display artifact counts and environment badges per workspace card
+   [x] fe-pages-sub_task-001 — Create app/dashboard/page.tsx with recent workspaces grid
+   [x] fe-pages-sub_task-002 — Add Quick Actions section with New Workspace and New Prompt buttons
+   [x] fe-pages-sub_task-003 — Implement global search bar component with debounced input
+   [x] fe-pages-sub_task-004 — Display artifact counts and environment badges per workspace card
 
 [ ] fe-pages-task-002 [build] [L] — Build Workspaces list page
    [ ] fe-pages-sub_task-001 — Create app/workspaces/page.tsx with data table component
@@ -76,13 +76,13 @@ This frontend implementation uses Next.js 15+ with App Router for the DEADLINE d
    [ ] fe-components-sub_task-004 — Add focus states and ARIA labels for accessibility
 
 [ ] fe-components-task-002 [build] [M] — Build artifact display components
-   [ ] fe-components-sub_task-001 — Create ArtifactCard for dashboard/list views
+   [x] fe-components-sub_task-001 — Create ArtifactCard for dashboard/list views (implemented as WorkspaceCard)
    [ ] fe-components-sub_task-002 — Build SecretValue component with mask/reveal toggle for ENV_VARs
    [ ] fe-components-sub_task-003 — Implement MarkdownPreview for PROMPT content display
    [ ] fe-components-sub_task-004 — Add CopyButton with clipboard API and success feedback
 
 [ ] fe-components-task-003 [build] [S] — Develop environment badge components
-   [ ] fe-components-sub_task-001 — Create EnvironmentBadge with color coding (Dev=blue, Staging=yellow, Prod=red)
+   [x] fe-components-sub_task-001 — Create EnvironmentBadge with color coding (Dev=blue, Staging=yellow, Prod=red)
    [ ] fe-components-sub_task-002 — Build EnvironmentTabs component for workspace detail navigation
    [ ] fe-components-sub_task-003 — Add active state styling and keyboard navigation
 
