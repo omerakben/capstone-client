@@ -66,3 +66,13 @@ export const ENV_LABELS = {
   STAGING: "Staging",
   PROD: "Production",
 } as const;
+
+// Workspace types
+export interface Workspace {
+  id: number;
+  name: string;
+  description?: string;
+  created_at: string;
+  updated_at: string;
+  artifact_counts?: Record<string, number>; // optional aggregated counts
+}

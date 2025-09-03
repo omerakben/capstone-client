@@ -45,11 +45,11 @@ This frontend implementation uses Next.js 15+ with App Router for the DEADLINE d
    [x] fe-pages-sub_task-003 — Implement New Workspace button triggering modal/drawer
    [x] fe-pages-sub_task-004 — Add edit and navigate actions per row
 
-[ ] fe-pages-task-003 [build] [L] — Develop Workspace Detail page with environment tabs
-   [ ] fe-pages-sub_task-001 — Create app/w/[id]/page.tsx with dynamic routing
-   [ ] fe-pages-sub_task-002 — Implement tab navigation for Dev/Staging/Production environments
-   [ ] fe-pages-sub_task-003 — Build artifacts table with type filters (ENV_VAR, PROMPT, DOC_LINK)
-   [ ] fe-pages-sub_task-004 — Add row actions: View, Edit, Copy, Duplicate to Env, Delete
+[x] fe-pages-task-003 [build] [L] — Develop Workspace Detail page with environment tabs
+   [x] fe-pages-sub_task-001 — Create app/w/[id]/page.tsx with dynamic routing
+   [x] fe-pages-sub_task-002 — Implement tab navigation for Dev/Staging/Production environments
+   [x] fe-pages-sub_task-003 — Build artifacts table with type filters (ENV_VAR, PROMPT, DOC_LINK)
+   [x] fe-pages-sub_task-004 — Add row actions: View, Edit, Copy, Duplicate to Env, Delete
 
 [ ] fe-pages-task-004 [build] [M] — Create Artifact create/edit forms
    [ ] fe-pages-sub_task-001 — Build app/w/[id]/new/page.tsx for new artifact creation
