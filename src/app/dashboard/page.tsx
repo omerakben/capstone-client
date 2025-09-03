@@ -24,8 +24,10 @@ function DashboardContent() {
   const { workspaces, loading, error, refetch } = useWorkspaces();
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Filter workspaces based on search query
-  const filteredWorkspaces = workspaces.filter(
+  // Filter workspaces based on search query - ensure workspaces is array
+  const filteredWorkspaces = (
+    Array.isArray(workspaces) ? workspaces : []
+  ).filter(
     (workspace) =>
       workspace.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       workspace.description?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -80,7 +82,7 @@ function DashboardContent() {
                 <h2 className="text-2xl font-semibold tracking-tight">
                   Your Workspaces
                 </h2>
-                {workspaces.length > 0 && (
+                {Array.isArray(workspaces) && workspaces.length > 0 && (
                   <Button variant="outline" size="sm" onClick={refetch}>
                     Refresh
                   </Button>
@@ -121,7 +123,7 @@ function DashboardContent() {
               {!loading &&
                 !error &&
                 filteredWorkspaces.length === 0 &&
-                workspaces.length === 0 && (
+                (!Array.isArray(workspaces) || workspaces.length === 0) && (
                   <div className="text-center py-12">
                     <Database className="mx-auto h-12 w-12 text-muted-foreground/50" />
                     <h3 className="mt-4 text-lg font-semibold">
@@ -144,6 +146,7 @@ function DashboardContent() {
               {!loading &&
                 !error &&
                 filteredWorkspaces.length === 0 &&
+                Array.isArray(workspaces) &&
                 workspaces.length > 0 && (
                   <div className="text-center py-12">
                     <Search className="mx-auto h-12 w-12 text-muted-foreground/50" />
@@ -197,7 +200,7 @@ function DashboardContent() {
               </div>
 
               {/* Stats overview */}
-              {workspaces.length > 0 && (
+              {Array.isArray(workspaces) && workspaces.length > 0 && (
                 <div>
                   <h3 className="font-semibold mb-4">Overview</h3>
                   <div className="space-y-2 text-sm">
