@@ -4,8 +4,10 @@ import {
   createUserWithEmailAndPassword,
   signOut as fbSignOut,
   getIdToken,
+  GoogleAuthProvider,
   onAuthStateChanged,
   signInWithEmailAndPassword,
+  signInWithPopup,
   User,
 } from "firebase/auth";
 import React, {
@@ -21,6 +23,7 @@ interface AuthContextValue {
   user: User | null;
   loading: boolean;
   signIn(email: string, password: string): Promise<void>;
+  signInWithGoogle(): Promise<void>;
   signUp(email: string, password: string): Promise<void>;
   signOut(): Promise<void>;
   getIdToken(force?: boolean): Promise<string | null>;
@@ -51,6 +54,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     },
     [auth]
   );
+
+  const signInWithGoogle = useCallback(async () => {
+    const provider = new GoogleAuthProvider();
+    provider.addScope("email");
+    provider.addScope("profile");
+    await signInWithPopup(auth, provider);
+  }, [auth]);
 
   const signUp = useCallback(
     async (email: string, password: string) => {
@@ -92,6 +102,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     user,
     loading,
     signIn,
+    signInWithGoogle,
     signUp,
     signOut,
     getIdToken: getTokenCached,
