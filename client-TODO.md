@@ -39,11 +39,11 @@ This frontend implementation uses Next.js 15+ with App Router for the DEADLINE d
    [x] fe-pages-sub_task-003 — Implement global search bar component with debounced input
    [x] fe-pages-sub_task-004 — Display artifact counts and environment badges per workspace card
 
-[ ] fe-pages-task-002 [build] [L] — Build Workspaces list page
-   [ ] fe-pages-sub_task-001 — Create app/workspaces/page.tsx with data table component
-   [ ] fe-pages-sub_task-002 — Add columns for Name, Environments (badges), Artifacts count, Actions
-   [ ] fe-pages-sub_task-003 — Implement New Workspace button triggering modal/drawer
-   [ ] fe-pages-sub_task-004 — Add edit and navigate actions per row
+[x] fe-pages-task-002 [build] [L] — Build Workspaces list page
+   [x] fe-pages-sub_task-001 — Create app/workspaces/page.tsx with data table component
+   [x] fe-pages-sub_task-002 — Add columns for Name, Environments (badges), Artifacts count, Actions
+   [x] fe-pages-sub_task-003 — Implement New Workspace button triggering modal/drawer
+   [x] fe-pages-sub_task-004 — Add edit and navigate actions per row
 
 [ ] fe-pages-task-003 [build] [L] — Develop Workspace Detail page with environment tabs
    [ ] fe-pages-sub_task-001 — Create app/w/[id]/page.tsx with dynamic routing
