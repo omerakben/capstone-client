@@ -19,10 +19,39 @@ export async function listArtifacts(
   return data;
 }
 
-export type CreateArtifactInput = Omit<
-  Artifact,
-  "id" | "updated_at" | "workspace"
-> & { workspace?: number };
+// Create input types for each artifact kind
+export interface CreateEnvVarInput {
+  kind: "ENV_VAR";
+  environment: EnvCode;
+  key: string;
+  value: string;
+  notes?: string;
+  workspace?: number;
+}
+
+export interface CreatePromptInput {
+  kind: "PROMPT";
+  environment: EnvCode;
+  title: string;
+  content: string;
+  notes?: string;
+  workspace?: number;
+}
+
+export interface CreateDocLinkInput {
+  kind: "DOC_LINK";
+  environment: EnvCode;
+  title: string;
+  url: string;
+  label?: string;
+  notes?: string;
+  workspace?: number;
+}
+
+export type CreateArtifactInput =
+  | CreateEnvVarInput
+  | CreatePromptInput
+  | CreateDocLinkInput;
 
 export async function createArtifact(
   workspaceId: number,

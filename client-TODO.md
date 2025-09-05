@@ -28,34 +28,34 @@ This frontend implementation uses Next.js 15+ with App Router for the DEADLINE d
    [x] fe-auth-sub_task-003 — Build login/signup page components at app/(auth)/login/page.tsx
    [x] fe-auth-sub_task-004 — Add middleware.ts for route protection checking Firebase tokens
 
-[ ] fe-auth-task-002 [build] [M] — Create auth flow components
+[x] fe-auth-task-002 [build] [M] — Create auth flow components
    [x] fe-auth-sub_task-001 — Build AuthGuard wrapper component for protected pages
    [x] fe-auth-sub_task-002 — Implement token refresh logic with axios interceptors
    [x] fe-auth-sub_task-003 — Add loading states during auth verification
 
-[ ] fe-pages-task-001 [build] [M] — Implement Dashboard page (deps: fe-auth-task-001)
+[x] fe-pages-task-001 [build] [M] — Implement Dashboard page (deps: fe-auth-task-001)
    [x] fe-pages-sub_task-001 — Create app/dashboard/page.tsx with recent workspaces grid
    [x] fe-pages-sub_task-002 — Add Quick Actions section with New Workspace and New Prompt buttons
    [x] fe-pages-sub_task-003 — Implement global search bar component with debounced input
    [x] fe-pages-sub_task-004 — Display artifact counts and environment badges per workspace card
 
-[ ] fe-pages-task-002 [build] [L] — Build Workspaces list page
-   [ ] fe-pages-sub_task-001 — Create app/workspaces/page.tsx with data table component
-   [ ] fe-pages-sub_task-002 — Add columns for Name, Environments (badges), Artifacts count, Actions
-   [ ] fe-pages-sub_task-003 — Implement New Workspace button triggering modal/drawer
-   [ ] fe-pages-sub_task-004 — Add edit and navigate actions per row
+[x] fe-pages-task-002 [build] [L] — Build Workspaces list page
+   [x] fe-pages-sub_task-001 — Create app/workspaces/page.tsx with data table component
+   [x] fe-pages-sub_task-002 — Add columns for Name, Environments (badges), Artifacts count, Actions
+   [x] fe-pages-sub_task-003 — Implement New Workspace button triggering modal/drawer
+   [x] fe-pages-sub_task-004 — Add edit and navigate actions per row
 
-[ ] fe-pages-task-003 [build] [L] — Develop Workspace Detail page with environment tabs
-   [ ] fe-pages-sub_task-001 — Create app/w/[id]/page.tsx with dynamic routing
-   [ ] fe-pages-sub_task-002 — Implement tab navigation for Dev/Staging/Production environments
-   [ ] fe-pages-sub_task-003 — Build artifacts table with type filters (ENV_VAR, PROMPT, DOC_LINK)
-   [ ] fe-pages-sub_task-004 — Add row actions: View, Edit, Copy, Duplicate to Env, Delete
+[x] fe-pages-task-003 [build] [L] — Workspace detail page
+   [x] fe-pages-sub_task-001 — Create app/w/[id]/page.tsx layout with header and environment tabs (DEV, STAGING, PROD)
+   [x] fe-pages-sub_task-002 — Add artifacts table for selected environment (filtered view)
+   [x] fe-pages-sub_task-003 — Environment selection persisted in URL search param ?env=DEV
+   [x] fe-pages-sub_task-004 — Row actions for each artifact (copy, duplicate, edit, delete)
 
-[ ] fe-pages-task-004 [build] [M] — Create Artifact create/edit forms
-   [ ] fe-pages-sub_task-001 — Build app/w/[id]/new/page.tsx for new artifact creation
-   [ ] fe-pages-sub_task-002 — Implement dynamic form fields based on artifact type selection
-   [ ] fe-pages-sub_task-003 — Add validation for ENV_VAR (key/value), PROMPT (title/content), DOC_LINK (title/url)
-   [ ] fe-pages-sub_task-004 — Handle form submission with API calls and success/error feedback
+[x] fe-pages-task-004 [build] [M] — Create Artifact create/edit forms
+   [x] fe-pages-sub_task-001 — Build app/w/[id]/new/page.tsx for new artifact creation
+   [x] fe-pages-sub_task-002 — Implement dynamic form fields based on artifact type selection
+   [x] fe-pages-sub_task-003 — Add validation for ENV_VAR (key/value), PROMPT (title/content), DOC_LINK (title/url)
+   [x] fe-pages-sub_task-004 — Handle form submission with API calls and success/error feedback
 
 [ ] fe-pages-task-005 [build] [M] — Implement Docs Hub page
    [ ] fe-pages-sub_task-001 — Create app/docs/page.tsx with pinned links grid
