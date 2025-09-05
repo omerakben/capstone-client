@@ -16,8 +16,17 @@ export interface Workspace {
 }
 
 export async function listWorkspaces(): Promise<Workspace[]> {
-  const { data } = await http.get<Workspace[]>("/workspaces/");
-  return data;
+  const { data } = await http.get("/workspaces/");
+  // Support both plain list and DRF paginated responses
+  if (Array.isArray(data)) {
+    return data as Workspace[];
+  }
+  const maybe = data as { results?: Workspace[] } | null | undefined;
+  if (maybe && Array.isArray(maybe.results)) {
+    return maybe.results;
+  }
+  console.warn("Unexpected workspaces response shape:", data);
+  return [];
 }
 
 export async function getWorkspace(id: number): Promise<Workspace> {

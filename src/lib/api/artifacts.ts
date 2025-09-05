@@ -15,11 +15,22 @@ export async function listArtifacts(
   const { data } = await http.get(`/workspaces/${workspaceId}/artifacts/`, {
     params: query,
   });
-  if (!Array.isArray(data)) {
-    console.warn("Expected artifacts array, got:", data);
-    return [];
+  // Support both plain list (no pagination) and DRF paginated responses
+  if (Array.isArray(data)) {
+    return data as Artifact[];
   }
-  return data as Artifact[];
+  interface Paginated<T> {
+    results: T[];
+    count?: number;
+    next?: string | null;
+    previous?: string | null;
+  }
+  const maybe = data as Partial<Paginated<Artifact>> | null | undefined;
+  if (maybe && Array.isArray(maybe.results)) {
+    return maybe.results;
+  }
+  console.warn("Unexpected artifacts response shape:", data);
+  return [];
 }
 
 // Create input types for each artifact kind
@@ -68,15 +79,22 @@ export async function createArtifact(
 }
 
 export async function updateArtifact(
+  workspaceId: number,
   id: number,
   dto: Partial<CreateArtifactInput>
 ): Promise<Artifact> {
-  const { data } = await http.patch<Artifact>(`/artifacts/${id}/`, dto);
+  const { data } = await http.patch<Artifact>(
+    `/workspaces/${workspaceId}/artifacts/${id}/`,
+    dto
+  );
   return data;
 }
 
-export async function deleteArtifact(id: number): Promise<void> {
-  await http.delete(`/artifacts/${id}/`);
+export async function deleteArtifact(
+  workspaceId: number,
+  id: number
+): Promise<void> {
+  await http.delete(`/workspaces/${workspaceId}/artifacts/${id}/`);
 }
 
 export async function duplicateArtifact(

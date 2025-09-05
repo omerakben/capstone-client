@@ -91,7 +91,7 @@ function WorkspaceDetailContent() {
     if (!confirm("Delete this artifact?")) return;
     setActionLoading(id);
     try {
-      await deleteArtifact(id);
+      await deleteArtifact(workspaceId, id);
       await fetchArtifacts();
     } catch (err) {
       console.error(err);
@@ -235,7 +235,7 @@ function WorkspaceDetailContent() {
                                   title="Edit"
                                   asChild
                                 >
-                                  <Link href={`/artifacts/${a.id}/edit`}>
+                                  <Link href={`/artifacts/${a.id}/edit?workspaceId=${workspaceId}`}>
                                     <Pencil className="h-4 w-4" />
                                   </Link>
                                 </Button>

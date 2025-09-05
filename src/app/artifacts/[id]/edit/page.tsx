@@ -44,6 +44,9 @@ function EditArtifactContent() {
   const params = useParams();
   const router = useRouter();
   const artifactId = parseInt(params.id as string, 10);
+  // workspaceId is provided via query parameter from Workspace page
+  const qs = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+  const workspaceId = qs && qs.get("workspaceId") ? parseInt(qs.get("workspaceId") as string, 10) : NaN;
   const [artifact, setArtifact] = useState<Artifact | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -57,7 +60,13 @@ function EditArtifactContent() {
     const load = async () => {
       try {
         setLoading(true);
-        const { data } = await http.get<Artifact>(`/artifacts/${artifactId}/`);
+        if (!workspaceId || Number.isNaN(workspaceId)) {
+          setError("Missing workspace context. Navigate from a workspace page.");
+          return;
+        }
+        const { data } = await http.get<Artifact>(
+          `/workspaces/${workspaceId}/artifacts/${artifactId}/`
+        );
         setArtifact(data);
         // Initialize form fields depending on kind
         const base: EditArtifactFormData = { notes: data.notes || "" };
@@ -84,7 +93,7 @@ function EditArtifactContent() {
       }
     };
     if (artifactId) load();
-  }, [artifactId, form]);
+  }, [artifactId, form, workspaceId]);
 
   const validate = (
     kind: ArtifactKind,
@@ -124,7 +133,11 @@ function EditArtifactContent() {
     setSaving(true);
     setError(null);
     try {
-      await updateArtifact(artifact.id, data);
+      if (!workspaceId || Number.isNaN(workspaceId)) {
+        setError("Missing workspace context.");
+        return;
+      }
+      await updateArtifact(workspaceId, artifact.id, data);
       router.push(`/w/${artifact.workspace}?env=${artifact.environment}`);
     } catch (e) {
       console.error(e);
