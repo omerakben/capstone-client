@@ -1,7 +1,8 @@
 import axios from "axios";
 
+// Ensure versioned API path matches backend (which exposes /api/v1/...)
 const baseURL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api";
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api/v1";
 
 export const http = axios.create({ baseURL });
 

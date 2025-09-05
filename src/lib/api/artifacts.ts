@@ -12,11 +12,14 @@ export async function listArtifacts(
   params: ListArtifactsParams
 ): Promise<Artifact[]> {
   const { workspaceId, ...query } = params;
-  const { data } = await http.get<Artifact[]>(
-    `/workspaces/${workspaceId}/artifacts/`,
-    { params: query }
-  );
-  return data;
+  const { data } = await http.get(`/workspaces/${workspaceId}/artifacts/`, {
+    params: query,
+  });
+  if (!Array.isArray(data)) {
+    console.warn("Expected artifacts array, got:", data);
+    return [];
+  }
+  return data as Artifact[];
 }
 
 // Create input types for each artifact kind
@@ -83,5 +86,20 @@ export async function duplicateArtifact(
   const { data } = await http.post<Artifact>(`/artifacts/${id}/duplicate/`, {
     environment: targetEnvironment,
   });
+  return data;
+}
+
+// Backend currently exposes duplicate endpoint as nested route action
+// /workspaces/:workspaceId/artifacts/:id/duplicate_to_environment/
+// Provide alternative that aligns with server implementation.
+export async function duplicateArtifactToEnvironment(
+  workspaceId: number,
+  id: number,
+  targetEnvironment: EnvCode
+): Promise<Artifact> {
+  const { data } = await http.post<Artifact>(
+    `/workspaces/${workspaceId}/artifacts/${id}/duplicate_to_environment/`,
+    { environment: targetEnvironment }
+  );
   return data;
 }
