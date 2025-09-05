@@ -1,4 +1,5 @@
 import { HttpAuthProvider } from "@/components/HttpAuthProvider";
+import { Toaster } from "@/components/ui/use-toast";
 import { AuthProvider } from "@/contexts/AuthContext";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -31,7 +32,10 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AuthProvider>
-          <HttpAuthProvider>{children}</HttpAuthProvider>
+          <HttpAuthProvider>
+            {children}
+            <Toaster />
+          </HttpAuthProvider>
         </AuthProvider>
       </body>
     </html>

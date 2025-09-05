@@ -1,3 +1,4 @@
+import type { Artifact } from "@/types/artifacts";
 import { http } from "./http";
 
 export interface WorkspaceDTO {
@@ -39,4 +40,27 @@ export async function updateWorkspace(
 
 export async function deleteWorkspace(id: number): Promise<void> {
   await http.delete(`/workspaces/${id}/`);
+}
+
+// Export/Import functionality
+export interface ExportData {
+  workspace: Workspace;
+  artifacts: Artifact[];
+  exportedAt: string;
+  version: string;
+}
+
+export async function exportWorkspace(id: number): Promise<ExportData> {
+  const { data } = await http.get<ExportData>(`/workspaces/${id}/export/`);
+  return data;
+}
+
+export async function importWorkspace(
+  exportData: ExportData
+): Promise<Workspace> {
+  const { data } = await http.post<Workspace>(
+    "/workspaces/import/",
+    exportData
+  );
+  return data;
 }

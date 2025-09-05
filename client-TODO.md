@@ -57,17 +57,17 @@ This frontend implementation uses Next.js 15+ with App Router for the DEADLINE d
    [x] fe-pages-sub_task-003 — Add validation for ENV_VAR (key/value), PROMPT (title/content), DOC_LINK (title/url)
    [x] fe-pages-sub_task-004 — Handle form submission with API calls and success/error feedback
 
-[ ] fe-pages-task-005 [build] [M] — Implement Docs Hub page
-   [ ] fe-pages-sub_task-001 — Create app/docs/page.tsx with pinned links grid
-   [ ] fe-pages-sub_task-002 — Display link cards with favicon, title, domain, and last opened
-   [ ] fe-pages-sub_task-003 — Add "Open in new tab" and "Copy link" actions per card
-   [ ] fe-pages-sub_task-004 — Implement Add Link button and form
+[x] fe-pages-task-005 [build] [M] — Implement Docs Hub page
+   [x] fe-pages-sub_task-001 — Create app/docs/page.tsx with pinned links grid
+   [x] fe-pages-sub_task-002 — Display link cards with favicon, title, domain, and last opened
+   [x] fe-pages-sub_task-003 — Add "Open in new tab" and "Copy link" actions per card
+   [x] fe-pages-sub_task-004 — Implement Add Link button and form
 
-[ ] fe-pages-task-006 [build] [S] — Build Settings page
-   [ ] fe-pages-sub_task-001 — Create app/settings/page.tsx with profile section
-   [ ] fe-pages-sub_task-002 — Add Export Workspace to JSON functionality
-   [ ] fe-pages-sub_task-003 — Implement Import Workspace from JSON with validation
-   [ ] fe-pages-sub_task-004 — Add Delete Account danger zone with confirmation
+[x] fe-pages-task-006 [build] [S] — Build Settings page
+   [x] fe-pages-sub_task-001 — Create app/settings/page.tsx with profile section
+   [x] fe-pages-sub_task-002 — Add Export Workspace to JSON functionality
+   [x] fe-pages-sub_task-003 — Implement Import Workspace from JSON with validation
+   [x] fe-pages-sub_task-004 — Add Delete Account danger zone with confirmation
 
 [ ] fe-components-task-001 [build] [M] — Create reusable form components
    [ ] fe-components-sub_task-001 — Build Input, Select, TextArea, RadioGroup components
