@@ -10,7 +10,7 @@ import {
 } from "@/lib/api/artifacts";
 import { getWorkspace } from "@/lib/api/workspaces";
 import type { Artifact, EnvCode } from "@/types/artifacts";
-import { ArrowLeft, Copy, Loader2, Trash2 } from "lucide-react";
+import { ArrowLeft, Copy, Loader2, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -228,6 +228,16 @@ function WorkspaceDetailContent() {
                                   ) : (
                                     <Copy className="h-4 w-4" />
                                   )}
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  title="Edit"
+                                  asChild
+                                >
+                                  <Link href={`/artifacts/${a.id}/edit`}>
+                                    <Pencil className="h-4 w-4" />
+                                  </Link>
                                 </Button>
                                 <Button
                                   variant="destructive"

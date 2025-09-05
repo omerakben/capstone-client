@@ -1,0 +1,324 @@
+"use client";
+
+import { AuthGuard } from "@/components/AuthGuard";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { updateArtifact } from "@/lib/api/artifacts";
+import { http } from "@/lib/api/http";
+import type { Artifact, ArtifactKind } from "@/types/artifacts";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+
+interface EditArtifactFormData {
+  notes?: string;
+  key?: string;
+  value?: string;
+  title?: string;
+  content?: string;
+  url?: string;
+  label?: string;
+}
+
+export default function EditArtifactPage() {
+  return (
+    <AuthGuard>
+      <EditArtifactContent />
+    </AuthGuard>
+  );
+}
+
+function EditArtifactContent() {
+  const params = useParams();
+  const router = useRouter();
+  const artifactId = parseInt(params.id as string, 10);
+  const [artifact, setArtifact] = useState<Artifact | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const form = useForm<EditArtifactFormData>({
+    defaultValues: {},
+  });
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setLoading(true);
+        const { data } = await http.get<Artifact>(`/artifacts/${artifactId}/`);
+        setArtifact(data);
+        // Initialize form fields depending on kind
+        const base: EditArtifactFormData = { notes: data.notes || "" };
+        if (data.kind === "ENV_VAR") {
+          const envVar = data as Extract<Artifact, { kind: "ENV_VAR" }>;
+          base.key = envVar.key;
+          base.value = ""; // blank value so user can optionally set
+        } else if (data.kind === "PROMPT") {
+          const prompt = data as Extract<Artifact, { kind: "PROMPT" }>;
+          base.title = prompt.title;
+          base.content = prompt.content;
+        } else if (data.kind === "DOC_LINK") {
+          const doc = data as Extract<Artifact, { kind: "DOC_LINK" }>;
+          base.title = doc.title;
+          base.url = doc.url;
+          base.label = doc.label || "";
+        }
+        form.reset(base);
+      } catch (e) {
+        console.error(e);
+        setError("Failed to load artifact");
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (artifactId) load();
+  }, [artifactId, form]);
+
+  const validate = (
+    kind: ArtifactKind,
+    data: EditArtifactFormData
+  ): string | null => {
+    switch (kind) {
+      case "ENV_VAR":
+        if (data.key && !/^[A-Z0-9_]+$/.test(data.key))
+          return "Key must be uppercase alphanumerics + underscore";
+        return null;
+      case "PROMPT":
+        if (data.title && !data.title.trim()) return "Title required";
+        if (data.content && data.content.length > 10000)
+          return "Prompt too long";
+        return null;
+      case "DOC_LINK":
+        if (data.url) {
+          try {
+            new URL(data.url);
+          } catch {
+            return "Invalid URL";
+          }
+        }
+        return null;
+      default:
+        return null;
+    }
+  };
+
+  const onSubmit = async (data: EditArtifactFormData) => {
+    if (!artifact) return;
+    const validationError = validate(artifact.kind, data);
+    if (validationError) {
+      form.setError("root", { message: validationError });
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    try {
+      await updateArtifact(artifact.id, data);
+      router.push(`/w/${artifact.workspace}?env=${artifact.environment}`);
+    } catch (e) {
+      console.error(e);
+      setError("Save failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!artifact) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-sm text-destructive">
+        Artifact not found
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto px-4 py-6 flex items-center gap-4">
+          <Button asChild variant="ghost" size="sm">
+            <Link href={`/w/${artifact.workspace}?env=${artifact.environment}`}>
+              <ArrowLeft className="h-4 w-4" /> Back
+            </Link>
+          </Button>
+          <h1 className="text-2xl font-bold tracking-tight">Edit Artifact</h1>
+        </div>
+      </header>
+      <div className="container mx-auto px-4 py-8 max-w-2xl">
+        <Card>
+          <CardHeader>
+            <CardTitle>{artifact.kind}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-6"
+              >
+                {error && (
+                  <div className="text-sm text-destructive">{error}</div>
+                )}
+                {artifact.kind === "ENV_VAR" && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name="key"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Key</FormLabel>
+                          <FormControl>
+                            <Input className="font-mono" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="value"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            Value (leave blank to keep unchanged)
+                          </FormLabel>
+                          <FormControl>
+                            <Input type="password" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
+                {artifact.kind === "PROMPT" && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name="title"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Title</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="content"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Content</FormLabel>
+                          <FormControl>
+                            <Textarea className="min-h-40" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
+                {artifact.kind === "DOC_LINK" && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name="title"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Title</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="url"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>URL</FormLabel>
+                          <FormControl>
+                            <Input type="url" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="label"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Label</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
+                <FormField
+                  control={form.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Notes</FormLabel>
+                      <FormControl>
+                        <Textarea className="min-h-24" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {form.formState.errors.root && (
+                  <div className="text-sm text-destructive">
+                    {form.formState.errors.root.message}
+                  </div>
+                )}
+                <div className="flex gap-3 pt-2">
+                  <Button type="submit" disabled={saving}>
+                    {saving && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    Save
+                  </Button>
+                  <Button type="button" variant="outline" asChild>
+                    <Link
+                      href={`/w/${artifact.workspace}?env=${artifact.environment}`}
+                    >
+                      Cancel
+                    </Link>
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
