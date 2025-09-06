@@ -2,6 +2,7 @@
 
 import { AuthGuard } from "@/components/AuthGuard";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   deleteArtifact,
@@ -38,6 +39,8 @@ function WorkspaceDetailContent() {
   const [loadingArtifacts, setLoadingArtifacts] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   const currentEnv: EnvCode = useMemo(() => {
     const env = (searchParams.get("env") as EnvCode) || "DEV";
@@ -61,6 +64,12 @@ function WorkspaceDetailContent() {
     if (workspaceId) loadWorkspace();
   }, [workspaceId]);
 
+  // Debounce search input
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    return () => clearTimeout(t);
+  }, [search]);
+
   const fetchArtifacts = useCallback(async () => {
     try {
       setLoadingArtifacts(true);
@@ -68,6 +77,7 @@ function WorkspaceDetailContent() {
       const data = await listArtifacts({
         workspaceId,
         environment: currentEnv,
+        ...(debouncedSearch ? { search: debouncedSearch } : {}),
       });
       setArtifacts(data);
     } catch (err) {
@@ -76,7 +86,7 @@ function WorkspaceDetailContent() {
     } finally {
       setLoadingArtifacts(false);
     }
-  }, [workspaceId, currentEnv]);
+  }, [workspaceId, currentEnv, debouncedSearch]);
 
   useEffect(() => {
     if (workspaceId) fetchArtifacts();
@@ -166,6 +176,13 @@ function WorkspaceDetailContent() {
 
       <div className="container mx-auto px-4 py-8">
         {error && <div className="mb-4 text-sm text-destructive">{error}</div>}
+        <div className="mb-4 max-w-md">
+          <Input
+            placeholder="Search artifacts (key, title, content, notes, url)"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
         <Tabs
           value={currentEnv}
           onValueChange={(v: string) => onEnvChange(v as EnvCode)}

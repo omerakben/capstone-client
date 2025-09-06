@@ -7,8 +7,10 @@ import { WorkspaceCard } from "@/components/workspace-card";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWorkspaces } from "@/hooks/useWorkspaces";
 import { Database, FileText, PlusCircle, Search } from "lucide-react";
+import { searchArtifactsGlobal } from "@/lib/api/search";
+import type { Artifact } from "@/types/artifacts";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 /**
  * Dashboard page - main entry point after authentication
@@ -23,6 +25,36 @@ function DashboardContent() {
   const { user } = useAuth();
   const { workspaces, loading, error, refetch } = useWorkspaces();
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [searchResults, setSearchResults] = useState<Artifact[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+
+  // Debounce search query
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 300);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
+  // Fire global search when query present
+  useEffect(() => {
+    const run = async () => {
+      if (!debouncedSearch) {
+        setSearchResults([]);
+        return;
+      }
+      try {
+        setSearchLoading(true);
+        const { results } = await searchArtifactsGlobal({ q: debouncedSearch });
+        setSearchResults(results);
+      } catch (e) {
+        // Non-fatal; keep empty
+        setSearchResults([]);
+      } finally {
+        setSearchLoading(false);
+      }
+    };
+    void run();
+  }, [debouncedSearch]);
 
   // Filter workspaces based on search query - ensure workspaces is array
   const filteredWorkspaces = (
@@ -88,6 +120,45 @@ function DashboardContent() {
                   </Button>
                 )}
               </div>
+
+              {/* Global search results */}
+              {debouncedSearch && (
+                <div className="mb-8">
+                  <h3 className="text-lg font-semibold mb-2">Search Results</h3>
+                  {searchLoading ? (
+                    <div className="text-sm text-muted-foreground">Searching…</div>
+                  ) : searchResults.length === 0 ? (
+                    <div className="text-sm text-muted-foreground">No results</div>
+                  ) : (
+                    <div className="overflow-x-auto rounded-md border">
+                      <table className="w-full text-sm">
+                        <thead className="bg-muted/50">
+                          <tr>
+                            <th className="px-3 py-2 text-left">Kind</th>
+                            <th className="px-3 py-2 text-left">Key / Title</th>
+                            <th className="px-3 py-2 text-left">Env</th>
+                            <th className="px-3 py-2 text-left">Updated</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {searchResults.slice(0, 25).map((a) => (
+                            <tr key={a.id} className="border-t">
+                              <td className="px-3 py-2">{a.kind}</td>
+                              <td className="px-3 py-2">
+                                {a.kind === "ENV_VAR" && (a as any).key}
+                                {a.kind !== "ENV_VAR" && (a as any).title}
+                              </td>
+                              <td className="px-3 py-2">{a.environment}</td>
+                              <td className="px-3 py-2">
+                                {new Date(a.updated_at).toLocaleDateString()}
+                              </td>
+                            </tr>) )}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Loading state */}
               {loading && (

@@ -1,3 +1,4 @@
+import { http } from "./http";
 import { listArtifacts } from "./artifacts";
 import { listWorkspaces } from "./workspaces";
 
@@ -8,6 +9,19 @@ export interface DocLink {
   label?: string;
   updated_at: string;
   workspace?: number; // global or workspace-specific
+}
+
+// Prefer server-side aggregation for DOC_LINK artifacts
+export async function listDocLinksGlobalServer(): Promise<DocLink[]> {
+  try {
+    const { data } = await http.get<{ results: DocLink[]; count: number }>(
+      "/docs/"
+    );
+    return data.results;
+  } catch (e) {
+    // Fallback to client aggregation if server endpoint unavailable
+    return listDocLinksGlobal();
+  }
 }
 
 // Aggregate DOC_LINK artifacts across all user workspaces

@@ -1,16 +1,17 @@
 "use client";
 
+import { AuthGuard } from "@/components/AuthGuard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { type DocLink, listDocLinksGlobal } from "@/lib/api/docs";
+import { type DocLink, listDocLinksGlobalServer } from "@/lib/api/docs";
 import { Copy, ExternalLink, FileText, Plus, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { getDomain } from "tldts";
 
-export default function DocsPage() {
+function DocsContent() {
   const [docLinks, setDocLinks] = useState<DocLink[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -31,7 +32,7 @@ export default function DocsPage() {
     const fetchDocLinks = async () => {
       try {
         setIsLoading(true);
-        const links = await listDocLinksGlobal();
+        const links = await listDocLinksGlobalServer();
         setDocLinks(links);
       } catch {
         console.error("Failed to fetch doc links");
@@ -253,5 +254,13 @@ export default function DocsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function DocsPage() {
+  return (
+    <AuthGuard>
+      <DocsContent />
+    </AuthGuard>
   );
 }

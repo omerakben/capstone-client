@@ -67,9 +67,10 @@ export async function exportWorkspace(id: number): Promise<ExportData> {
 export async function importWorkspace(
   exportData: ExportData
 ): Promise<Workspace> {
-  const { data } = await http.post<Workspace>(
+  // Server returns { workspace, imported_count }
+  const { data } = await http.post<{ workspace: Workspace; imported_count: number }>(
     "/workspaces/import/",
     exportData
   );
-  return data;
+  return data.workspace;
 }
