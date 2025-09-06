@@ -22,6 +22,7 @@ import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 interface CreateArtifactFormData {
   kind: ArtifactKind;

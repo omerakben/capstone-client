@@ -12,7 +12,11 @@ export interface Workspace {
   description?: string;
   created_at: string;
   updated_at: string;
-  artifact_counts?: Record<string, number>; // optional aggregated counts
+  artifact_counts?: {
+    total: number;
+    by_type: { ENV_VAR: number; PROMPT: number; DOC_LINK: number };
+    by_environment: { DEV: number; STAGING: number; PROD: number };
+  };
 }
 
 export async function listWorkspaces(): Promise<Workspace[]> {

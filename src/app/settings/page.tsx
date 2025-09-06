@@ -35,6 +35,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import {
   exportWorkspace,
   importWorkspace,
@@ -184,6 +185,7 @@ export default function SettingsPage() {
 
   return (
     <div className="container mx-auto max-w-4xl p-6 space-y-8">
+      <Breadcrumbs items={[{ label: "Dashboard", href: "/dashboard" }, { label: "Settings", current: true }]} />
       <div>
         <h1 className="text-3xl font-bold">Settings</h1>
         <p className="text-muted-foreground mt-2">

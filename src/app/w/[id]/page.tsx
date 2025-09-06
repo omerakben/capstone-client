@@ -9,8 +9,8 @@ import {
   duplicateArtifactToEnvironment,
   listArtifacts,
 } from "@/lib/api/artifacts";
-import { getWorkspace } from "@/lib/api/workspaces";
-import type { Artifact, EnvCode } from "@/types/artifacts";
+import { getWorkspace, deleteWorkspace } from "@/lib/api/workspaces";
+import type { Artifact, EnvCode, ArtifactKind } from "@/types/artifacts";
 import { ArrowLeft, Copy, Loader2, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
@@ -35,6 +35,7 @@ function WorkspaceDetailContent() {
   const [loadingArtifacts, setLoadingArtifacts] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
+  const [kindFilter, setKindFilter] = useState<ArtifactKind | "ALL">("ALL");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
@@ -73,6 +74,7 @@ function WorkspaceDetailContent() {
       const data = await listArtifacts({
         workspaceId,
         environment: currentEnv,
+        ...(kindFilter !== "ALL" ? { kind: kindFilter } : {}),
         ...(debouncedSearch ? { search: debouncedSearch } : {}),
       });
       setArtifacts(data);
@@ -82,7 +84,7 @@ function WorkspaceDetailContent() {
     } finally {
       setLoadingArtifacts(false);
     }
-  }, [workspaceId, currentEnv, debouncedSearch]);
+  }, [workspaceId, currentEnv, debouncedSearch, kindFilter]);
 
   useEffect(() => {
     if (workspaceId) fetchArtifacts();
@@ -168,23 +170,57 @@ function WorkspaceDetailContent() {
                 </p>
               </div>
             </div>
-            <Button asChild>
-              <Link href={`/w/${workspaceId}/new?env=${currentEnv}`}>
-                New Artifact
-              </Link>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button asChild>
+                <Link href={`/w/${workspaceId}/new?env=${currentEnv}`}>
+                  New Artifact
+                </Link>
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={async () => {
+                  if (!confirm("Delete this workspace and all artifacts?")) return;
+                  try {
+                    await deleteWorkspace(workspaceId);
+                    router.push("/workspaces");
+                  } catch (e) {
+                    alert("Delete workspace failed");
+                  }
+                }}
+              >
+                Delete Workspace
+              </Button>
+            </div>
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
-        {error && <div className="mb-4 text-sm text-destructive">{error}</div>}
+        <div className="container mx-auto px-4 py-8">
+          {error && <div className="mb-4 text-sm text-destructive">{error}</div>}
         <div className="mb-4 max-w-md">
           <Input
             placeholder="Search artifacts (key, title, content, notes, url)"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+        </div>
+        {/* Type filter chips */}
+        <div className="mb-4 flex flex-wrap gap-2">
+          {([
+            { code: "ALL", label: "All" },
+            { code: "ENV_VAR", label: "Env Vars" },
+            { code: "PROMPT", label: "Prompts" },
+            { code: "DOC_LINK", label: "Docs" },
+          ] as const).map((opt) => (
+            <Button
+              key={opt.code}
+              variant={kindFilter === (opt.code as any) ? "default" : "outline"}
+              size="sm"
+              onClick={() => setKindFilter(opt.code as any)}
+            >
+              {opt.label}
+            </Button>
+          ))}
         </div>
         <Tabs
           value={currentEnv}

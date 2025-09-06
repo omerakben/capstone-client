@@ -21,12 +21,7 @@ interface WorkspaceCardProps {
 export function WorkspaceCard({ workspace, className }: WorkspaceCardProps) {
   // Mock environment data - in real app this would come from API
   const environments: EnvCode[] = ["DEV", "STAGING", "PROD"];
-  const artifactCount = workspace.artifact_counts
-    ? Object.values(workspace.artifact_counts).reduce(
-        (sum, count) => sum + count,
-        0
-      )
-    : 0;
+  const artifactCount = workspace.artifact_counts?.total ?? 0;
 
   return (
     <Card

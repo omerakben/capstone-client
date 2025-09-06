@@ -288,15 +288,10 @@ function DashboardContent() {
                         Total Artifacts
                       </span>
                       <span className="font-medium">
-                        {workspaces.reduce((sum, w) => {
-                          const count = w.artifact_counts
-                            ? Object.values(w.artifact_counts).reduce(
-                                (s, c) => s + c,
-                                0
-                              )
-                            : 0;
-                          return sum + count;
-                        }, 0)}
+                        {workspaces.reduce(
+                          (sum, w) => sum + (w.artifact_counts?.total ?? 0),
+                          0
+                        )}
                       </span>
                     </div>
                   </div>

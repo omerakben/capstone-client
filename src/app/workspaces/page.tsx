@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { WorkspaceCard } from "@/components/workspace-card";
 import { useWorkspaces } from "@/hooks/useWorkspaces";
 import { PlusCircle } from "lucide-react";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import Link from "next/link";
 
 /**
@@ -32,6 +33,12 @@ function WorkspacesListContent() {
     <div className="min-h-screen bg-background">
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 py-6">
+          <Breadcrumbs
+            items={[
+              { label: "Dashboard", href: "/dashboard" },
+              { label: "Workspaces", current: true },
+            ]}
+          />
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold tracking-tight">Workspaces</h1>
