@@ -20,27 +20,9 @@ export function attachAuth(
 
   http.interceptors.request.use(async (config) => {
     const token = await getToken();
-    const forceDev =
-      String(process.env.NEXT_PUBLIC_FORCE_DEV_FAKE_AUTH || "").toLowerCase() ===
-      "true";
-
-    // When forced dev fake auth, prefer predictable dev-test token even if a Firebase token exists
-    if (
-      forceDev &&
-      process.env.NEXT_PUBLIC_E2E_BYPASS_UID &&
-      !String(config.headers?.Authorization || "").startsWith("Bearer dev-test-")
-    ) {
-      config.headers = config.headers || {};
-      config.headers.Authorization = `Bearer dev-test-${process.env.NEXT_PUBLIC_E2E_BYPASS_UID}`;
-    } else if (token) {
+    if (token) {
       config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
-    } else if (process.env.NEXT_PUBLIC_E2E_BYPASS_UID) {
-      // If no token and bypass UID is configured, send predictable dev-test token
-      config.headers = config.headers || {};
-      if (!config.headers.Authorization) {
-        config.headers.Authorization = `Bearer dev-test-${process.env.NEXT_PUBLIC_E2E_BYPASS_UID}`;
-      }
     }
     return config;
   });

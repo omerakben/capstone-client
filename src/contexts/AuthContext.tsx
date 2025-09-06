@@ -41,19 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const lastTokenRef = useRef<{ token: string; ts: number } | null>(null);
 
   useEffect(() => {
-    const bypassUid = process.env.NEXT_PUBLIC_E2E_BYPASS_UID;
-    if (bypassUid) {
-      // Create a synthetic minimal user-like object
-      // Only fields used elsewhere should be defined.
-      const fake = {
-        uid: bypassUid,
-        displayName: "E2E User",
-        email: "e2e@example.test",
-      } as unknown as User;
-      setUser(fake);
-      setLoading(false);
-      return () => void 0;
-    }
+    // Real Firebase auth only
     const unsub = onAuthStateChanged(auth, (u) => {
       setUser(u);
       setLoading(false);
