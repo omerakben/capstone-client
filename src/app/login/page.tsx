@@ -24,15 +24,19 @@ import { useForm } from "react-hook-form";
 interface FormValues {
   email: string;
   password: string;
+  confirmPassword?: string;
 }
 
 export default function LoginPage() {
   const { user, signIn, signInWithGoogle, signUp, loading } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const methods = useForm<FormValues>({
     defaultValues: {
       email: "",
       password: "",
+      confirmPassword: "",
     },
   });
 
@@ -141,23 +145,143 @@ export default function LoginPage() {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="Enter your password"
-                        autoComplete={
-                          isSignUp ? "new-password" : "current-password"
-                        }
-                        {...field}
-                      />
+                      <div className="relative">
+                        <Input
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Enter your password"
+                          autoComplete={
+                            isSignUp ? "new-password" : "current-password"
+                          }
+                          className="pr-10"
+                          {...field}
+                        />
+                        <button
+                          type="button"
+                          aria-label={
+                            showPassword ? "Hide password" : "Show password"
+                          }
+                          onClick={() => setShowPassword((v) => !v)}
+                          className="absolute inset-y-0 right-0 px-3 text-neutral-500 hover:text-neutral-700"
+                        >
+                          {showPassword ? (
+                            // eye-off icon
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-4 w-4"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20C7 20 2.73 16.11 1 12c.64-1.49 1.7-3.03 3.11-4.35" />
+                              <path
+                                d="M10.58 5.08A10.94 10.94 0 0 1 12 4c5 0 9.27 3.89 11 8-.
+                                32.75-.78 1.47-1.35 2.13"
+                              />
+                              <path d="M14 14a4 4 0 0 1-5.66-5.66" />
+                              <path d="M1 1l22 22" />
+                            </svg>
+                          ) : (
+                            // eye icon
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-4 w-4"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                              <circle cx="12" cy="12" r="3" />
+                            </svg>
+                          )}
+                        </button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
+              {isSignUp && (
+                <FormField
+                  control={methods.control}
+                  name="confirmPassword"
+                  rules={{
+                    required: "Please confirm your password",
+                    validate: (value) =>
+                      value === methods.getValues("password") ||
+                      "Passwords do not match",
+                  }}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirm Password</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type={showConfirmPassword ? "text" : "password"}
+                            placeholder="Re-enter your password"
+                            autoComplete="new-password"
+                            className="pr-10"
+                            {...field}
+                          />
+                          <button
+                            type="button"
+                            aria-label={
+                              showConfirmPassword
+                                ? "Hide password"
+                                : "Show password"
+                            }
+                            onClick={() => setShowConfirmPassword((v) => !v)}
+                            className="absolute inset-y-0 right-0 px-3 text-neutral-500 hover:text-neutral-700"
+                          >
+                            {showConfirmPassword ? (
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-4 w-4"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20C7 20 2.73 16.11 1 12c.64-1.49 1.7-3.03 3.11-4.35" />
+                                <path d="M10.58 5.08A10.94 10.94 0 0 1 12 4c5 0 9.27 3.89 11 8-.32.75-.78 1.47-1.35 2.13" />
+                                <path d="M14 14a4 4 0 0 1-5.66-5.66" />
+                                <path d="M1 1l22 22" />
+                              </svg>
+                            ) : (
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-4 w-4"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                <circle cx="12" cy="12" r="3" />
+                              </svg>
+                            )}
+                          </button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
               <Button
                 type="submit"
-                className="w-full h-10"
+                className="w-full h-10 border border-neutral-300"
                 disabled={isSubmitting}
               >
                 {isSubmitting
@@ -169,15 +293,12 @@ export default function LoginPage() {
             </form>
           </Form>
 
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
-                Or continue with
-              </span>
-            </div>
+          <div className="my-6 flex items-center">
+            <span className="flex-1 border-t border-dashed" />
+            <span className="mx-2 text-xs text-muted-foreground whitespace-nowrap">
+              Or continue with
+            </span>
+            <span className="flex-1 border-t border-dashed" />
           </div>
 
           <Button

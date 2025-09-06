@@ -1,11 +1,12 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/AuthContext";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState, useMemo } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/AuthContext";
+import { useMemo, useState } from "react";
 
 function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
@@ -29,7 +30,10 @@ export function SiteHeader() {
   const initials = useMemo(() => {
     if (!user) return "";
     const src = user.displayName || user.email || "";
-    const parts = src.replace(/[^a-zA-Z ]/g, "").trim().split(" ");
+    const parts = src
+      .replace(/[^a-zA-Z ]/g, "")
+      .trim()
+      .split(" ");
     if (parts.length >= 2)
       return `${parts[0][0] || ""}${parts[1][0] || ""}`.toUpperCase();
     return src.slice(0, 2).toUpperCase();
@@ -39,9 +43,23 @@ export function SiteHeader() {
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-14 items-center justify-between px-4">
         <div className="flex items-center gap-6">
-          <Link href={user ? "/dashboard" : "/login"} className="flex items-center gap-2 font-semibold">
-            <span className="inline-block h-5 w-5 rounded-full border-2" aria-hidden />
-            <span>DEADLINE</span>
+          <Link
+            href={user ? "/dashboard" : "/login"}
+            className="flex items-center gap-2 font-semibold"
+          >
+            <Image
+              src="/logo.png"
+              alt=""
+              aria-hidden
+              width={28}
+              height={28}
+              priority
+              sizes="28px"
+              className="h-7 w-7 object-contain rounded-md select-none"
+            />
+            <span className="text-lg leading-none tracking-tight">
+              DEADLINE
+            </span>
           </Link>
           {!hideNav && (
             <nav className="hidden md:flex items-center gap-4 text-sm">
@@ -105,4 +123,3 @@ export function SiteHeader() {
     </header>
   );
 }
-

@@ -1,7 +1,12 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  /* config options here */
+const config = {
+  // Other config options...
+  experimental: {
+    // Silence workspace root inference warning
+    // See: https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory
+    turbopack: {
+      root: __dirname,
+    },
+  },
 };
 
-export default nextConfig;
+export default config as any;

@@ -2,7 +2,7 @@ import { HttpAuthProvider } from "@/components/HttpAuthProvider";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Toaster } from "@/components/ui/use-toast";
 import { AuthProvider } from "@/contexts/AuthContext";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -20,6 +20,22 @@ export const metadata: Metadata = {
   title: "DEADLINE - Developer Command Center",
   description:
     "Unified hub for managing development artifacts across environments",
+  icons: {
+    icon: [
+      { url: "/deadline_favicon.ico" },
+      { url: "/deadline_favicon_16.png", type: "image/png", sizes: "16x16" },
+      { url: "/deadline_favicon_32.png", type: "image/png", sizes: "32x32" },
+      { url: "/deadline_favicon_48.png", type: "image/png", sizes: "48x48" },
+      { url: "/deadline_favicon_64.png", type: "image/png", sizes: "64x64" },
+      { url: "/deadline_favicon_128.png", type: "image/png", sizes: "128x128" },
+      { url: "/deadline_favicon_256.png", type: "image/png", sizes: "256x256" },
+      { url: "/deadline_favicon_512.png", type: "image/png", sizes: "512x512" },
+    ],
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#111827",
 };
 
 export default function RootLayout({

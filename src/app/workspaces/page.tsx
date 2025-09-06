@@ -1,11 +1,11 @@
 "use client";
 
 import { AuthGuard } from "@/components/AuthGuard";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { WorkspaceCard } from "@/components/workspace-card";
 import { useWorkspaces } from "@/hooks/useWorkspaces";
 import { PlusCircle } from "lucide-react";
-import { Breadcrumbs } from "@/components/Breadcrumbs";
 import Link from "next/link";
 
 /**
@@ -46,7 +46,11 @@ function WorkspacesListContent() {
                 Manage your development artifact collections
               </p>
             </div>
-            <Button asChild>
+            <Button
+              asChild
+              variant="primarySoft"
+              className="px-5 py-2 rounded-lg"
+            >
               <Link href="/workspaces/new">
                 <PlusCircle className="mr-2 h-4 w-4" />
                 New Workspace
@@ -70,7 +74,11 @@ function WorkspacesListContent() {
               Create your first workspace to start organizing your development
               artifacts
             </p>
-            <Button asChild>
+            <Button
+              asChild
+              variant="primarySoft"
+              className="px-5 py-2 rounded-lg"
+            >
               <Link href="/workspaces/new">
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Create Workspace

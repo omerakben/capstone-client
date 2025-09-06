@@ -6,12 +6,12 @@ import { Input } from "@/components/ui/input";
 import { WorkspaceCard } from "@/components/workspace-card";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWorkspaces } from "@/hooks/useWorkspaces";
-import { Database, FileText, PlusCircle, Search } from "lucide-react";
 import { searchArtifactsGlobal } from "@/lib/api/search";
 import type { Artifact } from "@/types/artifacts";
+import { Database, FileText, PlusCircle, Search } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 /**
  * Dashboard page - main entry point after authentication
@@ -26,7 +26,9 @@ function DashboardContent() {
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const { workspaces, loading, error, refetch } = useWorkspaces();
-  const [searchQuery, setSearchQuery] = useState<string>(searchParams.get("q") || "");
+  const [searchQuery, setSearchQuery] = useState<string>(
+    searchParams.get("q") || ""
+  );
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [searchResults, setSearchResults] = useState<Artifact[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -48,7 +50,7 @@ function DashboardContent() {
         setSearchLoading(true);
         const { results } = await searchArtifactsGlobal({ q: debouncedSearch });
         setSearchResults(results);
-      } catch (e) {
+      } catch {
         // Non-fatal; keep empty
         setSearchResults([]);
       } finally {
@@ -82,7 +84,11 @@ function DashboardContent() {
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <Button asChild>
+              <Button
+                asChild
+                variant="primarySoft"
+                className="px-5 py-2 rounded-lg"
+              >
                 <Link href="/workspaces/new">
                   <PlusCircle className="mr-2 h-4 w-4" />
                   New Workspace
@@ -117,7 +123,7 @@ function DashboardContent() {
                   Your Workspaces
                 </h2>
                 {Array.isArray(workspaces) && workspaces.length > 0 && (
-                  <Button variant="outline" size="sm" onClick={refetch}>
+                  <Button variant="mutedGhost" size="sm" onClick={refetch}>
                     Refresh
                   </Button>
                 )}
@@ -128,9 +134,13 @@ function DashboardContent() {
                 <div className="mb-8">
                   <h3 className="text-lg font-semibold mb-2">Search Results</h3>
                   {searchLoading ? (
-                    <div className="text-sm text-muted-foreground">Searching…</div>
+                    <div className="text-sm text-muted-foreground">
+                      Searching…
+                    </div>
                   ) : searchResults.length === 0 ? (
-                    <div className="text-sm text-muted-foreground">No results</div>
+                    <div className="text-sm text-muted-foreground">
+                      No results
+                    </div>
                   ) : (
                     <div className="overflow-x-auto rounded-md border">
                       <table className="w-full text-sm">
@@ -147,14 +157,17 @@ function DashboardContent() {
                             <tr key={a.id} className="border-t">
                               <td className="px-3 py-2">{a.kind}</td>
                               <td className="px-3 py-2">
-                                {a.kind === "ENV_VAR" && (a as any).key}
-                                {a.kind !== "ENV_VAR" && (a as any).title}
+                                {a.kind === "ENV_VAR"
+                                  ? (a as unknown as { key?: string }).key ?? ""
+                                  : (a as unknown as { title?: string })
+                                      .title ?? ""}
                               </td>
                               <td className="px-3 py-2">{a.environment}</td>
                               <td className="px-3 py-2">
                                 {new Date(a.updated_at).toLocaleDateString()}
                               </td>
-                            </tr>) )}
+                            </tr>
+                          ))}
                         </tbody>
                       </table>
                     </div>
@@ -206,7 +219,11 @@ function DashboardContent() {
                       Create your first workspace to start organizing your
                       development artifacts
                     </p>
-                    <Button asChild className="mt-6">
+                    <Button
+                      asChild
+                      variant="primarySoft"
+                      className="mt-6 px-5 py-2 rounded-lg"
+                    >
                       <Link href="/workspaces/new">
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Create Workspace

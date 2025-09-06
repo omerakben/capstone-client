@@ -125,13 +125,18 @@ function CreateWorkspaceContent() {
                 <div className="flex justify-end gap-3">
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="mutedGhost"
                     onClick={() => router.back()}
                     disabled={isLoading}
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={isLoading}>
+                  <Button
+                    type="submit"
+                    variant="primarySoft"
+                    className="px-5 py-2 rounded-lg"
+                    disabled={isLoading}
+                  >
                     {isLoading && (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     )}

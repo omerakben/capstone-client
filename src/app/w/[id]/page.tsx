@@ -1,22 +1,27 @@
 "use client";
 
 import { AuthGuard } from "@/components/AuthGuard";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   deleteArtifact,
   duplicateArtifactToEnvironment,
   listArtifacts,
 } from "@/lib/api/artifacts";
-import { getWorkspace, deleteWorkspace } from "@/lib/api/workspaces";
-import type { Artifact, EnvCode, ArtifactKind } from "@/types/artifacts";
+import { deleteWorkspace, getWorkspace } from "@/lib/api/workspaces";
+import type { Artifact, ArtifactKind, EnvCode } from "@/types/artifacts";
 import { ArrowLeft, Copy, Loader2, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs";
-import { Breadcrumbs } from "@/components/Breadcrumbs";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../../../components/ui/tabs";
 
 /**
  * Workspace detail page (placeholder implementation)
@@ -171,19 +176,25 @@ function WorkspaceDetailContent() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button asChild>
+              <Button
+                asChild
+                variant="primarySoft"
+                className="px-5 py-2 rounded-lg"
+              >
                 <Link href={`/w/${workspaceId}/new?env=${currentEnv}`}>
                   New Artifact
                 </Link>
               </Button>
               <Button
-                variant="destructive"
+                variant="danger"
+                className="px-4 py-2 rounded-lg"
                 onClick={async () => {
-                  if (!confirm("Delete this workspace and all artifacts?")) return;
+                  if (!confirm("Delete this workspace and all artifacts?"))
+                    return;
                   try {
                     await deleteWorkspace(workspaceId);
                     router.push("/workspaces");
-                  } catch (e) {
+                  } catch {
                     alert("Delete workspace failed");
                   }
                 }}
@@ -195,8 +206,8 @@ function WorkspaceDetailContent() {
         </div>
       </header>
 
-        <div className="container mx-auto px-4 py-8">
-          {error && <div className="mb-4 text-sm text-destructive">{error}</div>}
+      <div className="container mx-auto px-4 py-8">
+        {error && <div className="mb-4 text-sm text-destructive">{error}</div>}
         <div className="mb-4 max-w-md">
           <Input
             placeholder="Search artifacts (key, title, content, notes, url)"
@@ -206,17 +217,24 @@ function WorkspaceDetailContent() {
         </div>
         {/* Type filter chips */}
         <div className="mb-4 flex flex-wrap gap-2">
-          {([
-            { code: "ALL", label: "All" },
-            { code: "ENV_VAR", label: "Env Vars" },
-            { code: "PROMPT", label: "Prompts" },
-            { code: "DOC_LINK", label: "Docs" },
-          ] as const).map((opt) => (
+          {(
+            [
+              { code: "ALL", label: "All" },
+              { code: "ENV_VAR", label: "Env Vars" },
+              { code: "PROMPT", label: "Prompts" },
+              { code: "DOC_LINK", label: "Docs" },
+            ] as Array<{ code: ArtifactKind | "ALL"; label: string }>
+          ).map((opt) => (
             <Button
               key={opt.code}
-              variant={kindFilter === (opt.code as any) ? "default" : "outline"}
+              variant={kindFilter === opt.code ? "outline" : "ghost"}
               size="sm"
-              onClick={() => setKindFilter(opt.code as any)}
+              className={
+                kindFilter === opt.code
+                  ? "border-2 border-primary bg-primary/10 text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }
+              onClick={() => setKindFilter(opt.code)}
             >
               {opt.label}
             </Button>
@@ -291,7 +309,9 @@ function WorkspaceDetailContent() {
                                   title="Edit"
                                   asChild
                                 >
-                                  <Link href={`/artifacts/${a.id}/edit?workspaceId=${workspaceId}`}>
+                                  <Link
+                                    href={`/artifacts/${a.id}/edit?workspaceId=${workspaceId}`}
+                                  >
                                     <Pencil className="h-4 w-4" />
                                   </Link>
                                 </Button>
