@@ -48,16 +48,16 @@ export function SiteHeader() {
             className="flex items-center gap-2 font-semibold"
           >
             <Image
-              src="/logo.png"
+              src="/deadline_favicon_64.png"
               alt=""
               aria-hidden
               width={28}
               height={28}
               priority
               sizes="28px"
-              className="h-7 w-7 object-contain rounded-md select-none"
+              className="h-7 w-7 object-contain select-none"
             />
-            <span className="text-lg leading-none tracking-tight">
+            <span className="text-lg leading-none tracking-tight hidden sm:inline">
               DEADLINE
             </span>
           </Link>

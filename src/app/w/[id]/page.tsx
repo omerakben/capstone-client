@@ -10,7 +10,11 @@ import {
   duplicateArtifactToEnvironment,
   listArtifacts,
 } from "@/lib/api/artifacts";
-import { deleteWorkspace, getWorkspace } from "@/lib/api/workspaces";
+import {
+  deleteWorkspace,
+  getWorkspace,
+  type Workspace,
+} from "@/lib/api/workspaces";
 import type { Artifact, ArtifactKind, EnvCode } from "@/types/artifacts";
 import { ArrowLeft, Copy, Loader2, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
@@ -34,7 +38,7 @@ function WorkspaceDetailContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const workspaceId = parseInt(params.id as string, 10);
-  const [workspaceName, setWorkspaceName] = useState<string>("");
+  const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [loadingWorkspace, setLoadingWorkspace] = useState(true);
   const [artifacts, setArtifacts] = useState<Artifact[]>([]);
   const [loadingArtifacts, setLoadingArtifacts] = useState(false);
@@ -54,8 +58,8 @@ function WorkspaceDetailContent() {
     const loadWorkspace = async () => {
       try {
         setLoadingWorkspace(true);
-        const workspace = await getWorkspace(workspaceId);
-        setWorkspaceName(workspace.name);
+        const ws = await getWorkspace(workspaceId);
+        setWorkspace(ws);
       } catch (err) {
         console.error(err);
         setError("Failed to load workspace");
@@ -156,7 +160,7 @@ function WorkspaceDetailContent() {
             items={[
               { label: "Dashboard", href: "/dashboard" },
               { label: "Workspaces", href: "/workspaces" },
-              { label: workspaceName || "Workspace", current: true },
+              { label: workspace?.name || "Workspace", current: true },
             ]}
           />
           <div className="flex items-center justify-between flex-wrap gap-4">
@@ -168,7 +172,7 @@ function WorkspaceDetailContent() {
               </Button>
               <div>
                 <h1 className="text-2xl font-bold tracking-tight">
-                  {workspaceName}
+                  {workspace?.name}
                 </h1>
                 <p className="text-muted-foreground">
                   Artifacts ({currentEnv})
@@ -245,9 +249,36 @@ function WorkspaceDetailContent() {
           onValueChange={(v: string) => onEnvChange(v as EnvCode)}
         >
           <TabsList>
-            <TabsTrigger value="DEV">DEV</TabsTrigger>
-            <TabsTrigger value="STAGING">STAGING</TabsTrigger>
-            <TabsTrigger value="PROD">PROD</TabsTrigger>
+            {(workspace?.enabled_environments?.length
+              ? workspace.enabled_environments
+              : [
+                  {
+                    slug: "DEV" as const,
+                    name: "Development",
+                    display_order: 0,
+                  },
+                  {
+                    slug: "STAGING" as const,
+                    name: "Staging",
+                    display_order: 1,
+                  },
+                  {
+                    slug: "PROD" as const,
+                    name: "Production",
+                    display_order: 2,
+                  },
+                ]
+            ).map((env) => (
+              <TabsTrigger key={env.slug} value={env.slug}>
+                {env.slug}
+                {workspace?.artifact_counts?.by_environment?.[env.slug] !==
+                  undefined && (
+                  <span className="ml-2 text-xs text-muted-foreground">
+                    {workspace.artifact_counts.by_environment[env.slug]}
+                  </span>
+                )}
+              </TabsTrigger>
+            ))}
           </TabsList>
           <TabsContent value={currentEnv} className="mt-6">
             <Card>

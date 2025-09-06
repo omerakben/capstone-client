@@ -17,6 +17,11 @@ export interface Workspace {
     by_type: { ENV_VAR: number; PROMPT: number; DOC_LINK: number };
     by_environment: { DEV: number; STAGING: number; PROD: number };
   };
+  enabled_environments?: Array<{
+    slug: "DEV" | "STAGING" | "PROD";
+    name: string;
+    display_order: number;
+  }>;
 }
 
 export async function listWorkspaces(): Promise<Workspace[]> {
@@ -72,9 +77,9 @@ export async function importWorkspace(
   exportData: ExportData
 ): Promise<Workspace> {
   // Server returns { workspace, imported_count }
-  const { data } = await http.post<{ workspace: Workspace; imported_count: number }>(
-    "/workspaces/import/",
-    exportData
-  );
+  const { data } = await http.post<{
+    workspace: Workspace;
+    imported_count: number;
+  }>("/workspaces/import/", exportData);
   return data.workspace;
 }

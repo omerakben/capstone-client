@@ -1,6 +1,7 @@
 "use client";
 
 import { AuthGuard } from "@/components/AuthGuard";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -15,14 +16,13 @@ import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { createArtifact, CreateArtifactInput } from "@/lib/api/artifacts";
-import { getWorkspace } from "@/lib/api/workspaces";
+import { getWorkspace, type Workspace } from "@/lib/api/workspaces";
 import type { ArtifactKind, EnvCode } from "@/types/artifacts";
 import { ArrowLeft, Database, FileText, Link2, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 interface CreateArtifactFormData {
   kind: ArtifactKind;
@@ -57,7 +57,7 @@ function CreateArtifactContent() {
   // Get environment from URL search params, default to DEV
   const initialEnvironment = (searchParams.get("env") as EnvCode) || "DEV";
 
-  const [workspaceName, setWorkspaceName] = useState<string>("");
+  const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingWorkspace, setIsLoadingWorkspace] = useState(true);
 
@@ -82,8 +82,8 @@ function CreateArtifactContent() {
     const loadWorkspace = async () => {
       try {
         setIsLoadingWorkspace(true);
-        const workspace = await getWorkspace(workspaceId);
-        setWorkspaceName(workspace.name);
+        const ws = await getWorkspace(workspaceId);
+        setWorkspace(ws);
       } catch (error) {
         console.error("Failed to load workspace:", error);
         // If workspace doesn't exist, redirect to dashboard
@@ -374,7 +374,7 @@ function CreateArtifactContent() {
             <Button asChild variant="ghost" size="sm">
               <Link href={`/w/${workspaceId}`}>
                 <ArrowLeft className="h-4 w-4" />
-                Back to {workspaceName}
+                Back to {workspace?.name}
               </Link>
             </Button>
             <div>
@@ -382,7 +382,7 @@ function CreateArtifactContent() {
                 Create New Artifact
               </h1>
               <p className="text-muted-foreground">
-                Add a new artifact to {workspaceName}
+                Add a new artifact to {workspace?.name}
               </p>
             </div>
           </div>
@@ -484,27 +484,30 @@ function CreateArtifactContent() {
                             onValueChange={field.onChange}
                             className="flex gap-6"
                           >
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="DEV" id="dev" />
-                              <label htmlFor="dev" className="cursor-pointer">
-                                Development
-                              </label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="STAGING" id="staging" />
-                              <label
-                                htmlFor="staging"
-                                className="cursor-pointer"
+                            {(workspace?.enabled_environments?.length
+                              ? workspace.enabled_environments
+                              : [
+                                  { slug: "DEV" as const, name: "Development" },
+                                  { slug: "STAGING" as const, name: "Staging" },
+                                  { slug: "PROD" as const, name: "Production" },
+                                ]
+                            ).map((env) => (
+                              <div
+                                key={env.slug}
+                                className="flex items-center space-x-2"
                               >
-                                Staging
-                              </label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="PROD" id="prod" />
-                              <label htmlFor="prod" className="cursor-pointer">
-                                Production
-                              </label>
-                            </div>
+                                <RadioGroupItem
+                                  value={env.slug}
+                                  id={`env-${env.slug}`}
+                                />
+                                <label
+                                  htmlFor={`env-${env.slug}`}
+                                  className="cursor-pointer"
+                                >
+                                  {env.name}
+                                </label>
+                              </div>
+                            ))}
                           </RadioGroup>
                         </FormControl>
                         <FormMessage />
