@@ -21,6 +21,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 interface EditArtifactFormData {
   notes?: string;
@@ -166,13 +167,22 @@ function EditArtifactContent() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 py-6 flex items-center gap-4">
+        <div className="container mx-auto px-4 py-6">
+          <Breadcrumbs
+            items={[
+              { label: "Dashboard", href: "/dashboard" },
+              { label: "Workspaces", href: "/workspaces" },
+              { label: "Artifact", current: true },
+            ]}
+          />
+          <div className="flex items-center gap-4">
           <Button asChild variant="ghost" size="sm">
             <Link href={`/w/${artifact.workspace}?env=${artifact.environment}`}>
               <ArrowLeft className="h-4 w-4" /> Back
             </Link>
           </Button>
           <h1 className="text-2xl font-bold tracking-tight">Edit Artifact</h1>
+          </div>
         </div>
       </header>
       <div className="container mx-auto px-4 py-8 max-w-2xl">

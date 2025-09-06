@@ -15,12 +15,8 @@ import { ArrowLeft, Copy, Loader2, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "../../../components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 /**
  * Workspace detail page (placeholder implementation)
@@ -149,6 +145,13 @@ function WorkspaceDetailContent() {
     <div className="min-h-screen bg-background">
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 py-6">
+          <Breadcrumbs
+            items={[
+              { label: "Dashboard", href: "/dashboard" },
+              { label: "Workspaces", href: "/workspaces" },
+              { label: workspaceName || "Workspace", current: true },
+            ]}
+          />
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
               <Button asChild variant="ghost" size="sm">

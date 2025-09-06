@@ -1,4 +1,5 @@
 import { HttpAuthProvider } from "@/components/HttpAuthProvider";
+import { SiteHeader } from "@/components/SiteHeader";
 import { Toaster } from "@/components/ui/use-toast";
 import { AuthProvider } from "@/contexts/AuthContext";
 import type { Metadata } from "next";
@@ -33,6 +34,7 @@ export default function RootLayout({
       >
         <AuthProvider>
           <HttpAuthProvider>
+            <SiteHeader />
             {children}
             <Toaster />
           </HttpAuthProvider>

@@ -11,6 +11,7 @@ import { searchArtifactsGlobal } from "@/lib/api/search";
 import type { Artifact } from "@/types/artifacts";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 /**
  * Dashboard page - main entry point after authentication
@@ -22,9 +23,10 @@ import { useEffect, useState } from "react";
  * - Environment-aware workspace display
  */
 function DashboardContent() {
+  const searchParams = useSearchParams();
   const { user } = useAuth();
   const { workspaces, loading, error, refetch } = useWorkspaces();
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState<string>(searchParams.get("q") || "");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [searchResults, setSearchResults] = useState<Artifact[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);

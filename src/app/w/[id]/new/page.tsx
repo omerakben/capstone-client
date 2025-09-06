@@ -362,6 +362,13 @@ function CreateArtifactContent() {
       {/* Header */}
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 py-6">
+          <Breadcrumbs
+            items={[
+              { label: "Dashboard", href: "/dashboard" },
+              { label: "Workspaces", href: "/workspaces" },
+              { label: "New Artifact", current: true },
+            ]}
+          />
           <div className="flex items-center gap-4">
             <Button asChild variant="ghost" size="sm">
               <Link href={`/w/${workspaceId}`}>
