@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { SecretInput } from "@/components/ui/secret-input";
 import { Textarea } from "@/components/ui/textarea";
 import { createArtifact, CreateArtifactInput } from "@/lib/api/artifacts";
 import { getWorkspace, type Workspace } from "@/lib/api/workspaces";
@@ -242,8 +243,7 @@ function CreateArtifactContent() {
                 <FormItem>
                   <FormLabel>Value</FormLabel>
                   <FormControl>
-                    <Input
-                      type="password"
+                    <SecretInput
                       placeholder="Enter the environment variable value"
                       {...field}
                     />

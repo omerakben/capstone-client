@@ -1,6 +1,7 @@
 "use client";
 
 import { AuthGuard } from "@/components/AuthGuard";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -12,6 +13,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { SecretInput } from "@/components/ui/secret-input";
 import { Textarea } from "@/components/ui/textarea";
 import { updateArtifact } from "@/lib/api/artifacts";
 import { http } from "@/lib/api/http";
@@ -21,7 +23,6 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 interface EditArtifactFormData {
   notes?: string;
@@ -46,8 +47,14 @@ function EditArtifactContent() {
   const router = useRouter();
   const artifactId = parseInt(params.id as string, 10);
   // workspaceId is provided via query parameter from Workspace page
-  const qs = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
-  const workspaceId = qs && qs.get("workspaceId") ? parseInt(qs.get("workspaceId") as string, 10) : NaN;
+  const qs =
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search)
+      : null;
+  const workspaceId =
+    qs && qs.get("workspaceId")
+      ? parseInt(qs.get("workspaceId") as string, 10)
+      : NaN;
   const [artifact, setArtifact] = useState<Artifact | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -62,7 +69,9 @@ function EditArtifactContent() {
       try {
         setLoading(true);
         if (!workspaceId || Number.isNaN(workspaceId)) {
-          setError("Missing workspace context. Navigate from a workspace page.");
+          setError(
+            "Missing workspace context. Navigate from a workspace page."
+          );
           return;
         }
         const { data } = await http.get<Artifact>(
@@ -176,12 +185,14 @@ function EditArtifactContent() {
             ]}
           />
           <div className="flex items-center gap-4">
-          <Button asChild variant="ghost" size="sm">
-            <Link href={`/w/${artifact.workspace}?env=${artifact.environment}`}>
-              <ArrowLeft className="h-4 w-4" /> Back
-            </Link>
-          </Button>
-          <h1 className="text-2xl font-bold tracking-tight">Edit Artifact</h1>
+            <Button asChild variant="ghost" size="sm">
+              <Link
+                href={`/w/${artifact.workspace}?env=${artifact.environment}`}
+              >
+                <ArrowLeft className="h-4 w-4" /> Back
+              </Link>
+            </Button>
+            <h1 className="text-2xl font-bold tracking-tight">Edit Artifact</h1>
           </div>
         </div>
       </header>
@@ -223,7 +234,7 @@ function EditArtifactContent() {
                             Value (leave blank to keep unchanged)
                           </FormLabel>
                           <FormControl>
-                            <Input type="password" {...field} />
+                            <SecretInput {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

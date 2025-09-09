@@ -1,22 +1,44 @@
 "use client";
+import {
+  ArrowLeft,
+  Check,
+  Copy,
+  Eye,
+  Files,
+  Loader2,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 
 import { AuthGuard } from "@/components/AuthGuard";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   deleteArtifact,
   duplicateArtifactToEnvironment,
   listArtifacts,
 } from "@/lib/api/artifacts";
+import { http } from "@/lib/api/http";
 import {
   deleteWorkspace,
   getWorkspace,
   type Workspace,
 } from "@/lib/api/workspaces";
-import type { Artifact, ArtifactKind, EnvCode } from "@/types/artifacts";
-import { ArrowLeft, Copy, Loader2, Pencil, Trash2 } from "lucide-react";
+import type {
+  Artifact,
+  ArtifactKind,
+  EnvCode,
+  EnvVarArtifact,
+} from "@/types/artifacts";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -44,6 +66,14 @@ function WorkspaceDetailContent() {
   const [loadingArtifacts, setLoadingArtifacts] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
+  const [revealingId, setRevealingId] = useState<number | null>(null);
+  const [copyingId, setCopyingId] = useState<number | null>(null);
+  const [copiedId, setCopiedId] = useState<number | null>(null);
+  const [reveal, setReveal] = useState<{
+    id: number;
+    key: string;
+    value: string;
+  } | null>(null);
   const [kindFilter, setKindFilter] = useState<ArtifactKind | "ALL">("ALL");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -141,6 +171,43 @@ function WorkspaceDetailContent() {
       alert("Duplicate failed");
     } finally {
       setActionLoading(null);
+    }
+  };
+
+  const fetchEnvVarDetail = async (artifactId: number) => {
+    const { data } = await http.get<Artifact>(
+      `/workspaces/${workspaceId}/artifacts/${artifactId}/`
+    );
+    return data as EnvVarArtifact;
+  };
+
+  const handleReveal = async (artifact: Artifact) => {
+    if (artifact.kind !== "ENV_VAR") return;
+    setRevealingId(artifact.id);
+    try {
+      const env = await fetchEnvVarDetail(artifact.id);
+      setReveal({ id: env.id, key: env.key, value: env.value });
+    } catch (err) {
+      console.error(err);
+      alert("Failed to reveal value");
+    } finally {
+      setRevealingId(null);
+    }
+  };
+
+  const handleCopy = async (artifact: Artifact) => {
+    if (artifact.kind !== "ENV_VAR") return;
+    setCopyingId(artifact.id);
+    try {
+      const env = await fetchEnvVarDetail(artifact.id);
+      await navigator.clipboard.writeText(env.value ?? "");
+      setCopiedId(artifact.id);
+      setTimeout(() => setCopiedId(null), 1200);
+    } catch (err) {
+      console.error(err);
+      alert("Copy failed");
+    } finally {
+      setCopyingId(null);
     }
   };
 
@@ -321,6 +388,38 @@ function WorkspaceDetailContent() {
                             </td>
                             <td className="px-4 py-2 align-middle">
                               <div className="flex justify-end gap-2">
+                                {a.kind === "ENV_VAR" && (
+                                  <>
+                                    <Button
+                                      variant="outline"
+                                      size="icon"
+                                      title="Reveal value"
+                                      disabled={revealingId === a.id}
+                                      onClick={() => handleReveal(a)}
+                                    >
+                                      {revealingId === a.id ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <Eye className="h-4 w-4" />
+                                      )}
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="icon"
+                                      title="Copy value"
+                                      disabled={copyingId === a.id}
+                                      onClick={() => handleCopy(a)}
+                                    >
+                                      {copyingId === a.id ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : copiedId === a.id ? (
+                                        <Check className="h-4 w-4 text-green-600" />
+                                      ) : (
+                                        <Copy className="h-4 w-4" />
+                                      )}
+                                    </Button>
+                                  </>
+                                )}
                                 <Button
                                   variant="outline"
                                   size="icon"
@@ -331,7 +430,7 @@ function WorkspaceDetailContent() {
                                   {actionLoading === a.id ? (
                                     <Loader2 className="h-4 w-4 animate-spin" />
                                   ) : (
-                                    <Copy className="h-4 w-4" />
+                                    <Files className="h-4 w-4" />
                                   )}
                                 </Button>
                                 <Button
@@ -347,7 +446,7 @@ function WorkspaceDetailContent() {
                                   </Link>
                                 </Button>
                                 <Button
-                                  variant="destructive"
+                                  variant="danger"
                                   size="icon"
                                   title="Delete"
                                   disabled={actionLoading === a.id}
@@ -369,6 +468,41 @@ function WorkspaceDetailContent() {
                 )}
               </CardContent>
             </Card>
+            {/* Reveal Dialog */}
+            <Dialog open={!!reveal} onOpenChange={(o) => !o && setReveal(null)}>
+              <DialogContent className="z-[10050]">
+                <DialogHeader>
+                  <DialogTitle>Reveal value</DialogTitle>
+                  <DialogDescription>
+                    {reveal ? (
+                      <div className="space-y-2">
+                        <div className="text-xs text-muted-foreground">
+                          {reveal.key}
+                        </div>
+                        <div className="rounded-md border bg-accent/30 p-3 font-mono break-all">
+                          {reveal.value}
+                        </div>
+                        <div className="flex justify-end">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={async () => {
+                              try {
+                                await navigator.clipboard.writeText(
+                                  reveal.value
+                                );
+                              } catch {}
+                            }}
+                          >
+                            <Copy className="mr-2 h-4 w-4" /> Copy
+                          </Button>
+                        </div>
+                      </div>
+                    ) : null}
+                  </DialogDescription>
+                </DialogHeader>
+              </DialogContent>
+            </Dialog>
           </TabsContent>
         </Tabs>
       </div>
