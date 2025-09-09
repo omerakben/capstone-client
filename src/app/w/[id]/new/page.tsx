@@ -56,6 +56,8 @@ function CreateArtifactContent() {
 
   // Get environment from URL search params, default to DEV
   const initialEnvironment = (searchParams.get("env") as EnvCode) || "DEV";
+  const initialKind =
+    (searchParams.get("kind") as ArtifactKind) || ("ENV_VAR" as ArtifactKind);
 
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -63,7 +65,7 @@ function CreateArtifactContent() {
 
   const form = useForm<CreateArtifactFormData>({
     defaultValues: {
-      kind: "ENV_VAR",
+      kind: initialKind,
       environment: initialEnvironment,
       notes: "",
       key: "",

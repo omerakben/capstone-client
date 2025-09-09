@@ -93,6 +93,13 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Override scroll-lock behavior from Radix/react-remove-scroll that sets
+   pointer-events: none on <body>. This prevents interaction with portaled
+   dialogs on some setups. Our overlay blocks background clicks. */
+body[data-scroll-locked="1"] {
+  pointer-events: auto !important;
+}
+
 /* Base Element Resets & Utilities */
 * {
   box-sizing: border-box;

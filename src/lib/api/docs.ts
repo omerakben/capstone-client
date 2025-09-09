@@ -1,5 +1,6 @@
 import { http } from "./http";
 import { listArtifacts } from "./artifacts";
+import type { DocLinkArtifact } from "@/types/artifacts";
 import { listWorkspaces } from "./workspaces";
 
 export interface DocLink {
@@ -18,7 +19,7 @@ export async function listDocLinksGlobalServer(): Promise<DocLink[]> {
       "/docs/"
     );
     return data.results;
-  } catch (e) {
+  } catch {
     // Fallback to client aggregation if server endpoint unavailable
     return listDocLinksGlobal();
   }
@@ -32,12 +33,12 @@ export async function listDocLinksGlobal(): Promise<DocLink[]> {
   await Promise.all(
     workspaces.map(async (ws) => {
       const links = await listArtifacts({ workspaceId: ws.id, kind: "DOC_LINK" });
-      for (const a of links) {
+      for (const a of links as DocLinkArtifact[]) {
         results.push({
           id: a.id,
-          title: (a as any).title,
-          url: (a as any).url,
-          label: (a as any).label, // may be undefined if not set
+          title: a.title,
+          url: a.url,
+          label: a.label, // may be undefined if not set
           updated_at: a.updated_at,
           workspace: a.workspace,
         });

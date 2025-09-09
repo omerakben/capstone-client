@@ -6,13 +6,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 
 function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
-export function SiteHeader() {
+function SiteHeaderInner() {
   const pathname = usePathname();
   const router = useRouter();
   const params = useSearchParams();
@@ -121,5 +121,14 @@ export function SiteHeader() {
         )}
       </div>
     </header>
+  );
+}
+
+export function SiteHeader() {
+  // Wrap route hooks usage with Suspense to satisfy Next.js static bailouts
+  return (
+    <Suspense fallback={null}>
+      <SiteHeaderInner />
+    </Suspense>
   );
 }
