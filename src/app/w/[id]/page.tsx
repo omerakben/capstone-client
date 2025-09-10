@@ -1,5 +1,13 @@
 "use client";
-import { ArrowLeft, Check, Copy, Files, Loader2, Pencil, Trash2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Check,
+  Copy,
+  Files,
+  Loader2,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 
 import { AuthGuard } from "@/components/AuthGuard";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
@@ -28,7 +36,12 @@ import type {
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../../../components/ui/tabs";
 
 /**
  * Workspace detail page (placeholder implementation)
@@ -37,7 +50,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui
  * This is a minimal implementation to satisfy type checking and routing
  */
 const ALL_ENVS = ["DEV", "STAGING", "PROD"] as const;
-type EnvSlug = typeof ALL_ENVS[number];
+type EnvSlug = (typeof ALL_ENVS)[number];
 type EnabledFormState = Record<EnvSlug, boolean>;
 
 function WorkspaceDetailContent() {
@@ -72,8 +85,13 @@ function WorkspaceDetailContent() {
         const ws = await getWorkspace(workspaceId);
         setWorkspace(ws);
         try {
-          const enabled = (ws.enabled_environments?.map((e) => e.slug) || ALL_ENVS) as EnvSlug[];
-          setEnvForm({ DEV: enabled.includes("DEV"), STAGING: enabled.includes("STAGING"), PROD: enabled.includes("PROD") });
+          const enabled = (ws.enabled_environments?.map((e) => e.slug) ||
+            ALL_ENVS) as EnvSlug[];
+          setEnvForm({
+            DEV: enabled.includes("DEV"),
+            STAGING: enabled.includes("STAGING"),
+            PROD: enabled.includes("PROD"),
+          });
         } catch {}
       } catch (err) {
         console.error(err);
@@ -127,7 +145,8 @@ function WorkspaceDetailContent() {
       const ws = await getWorkspace(workspaceId);
       setWorkspace(ws);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to update environments";
+      const msg =
+        err instanceof Error ? err.message : "Failed to update environments";
       alert(msg);
     }
   };
@@ -282,24 +301,31 @@ function WorkspaceDetailContent() {
         <div className="mb-4 p-3 border rounded-lg">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="font-medium">Enabled Environments</div>
-            <div className="text-xs text-muted-foreground">Toggle tabs available for this workspace</div>
+            <div className="text-xs text-muted-foreground">
+              Available for this workspace
+            </div>
           </div>
           <div className="mt-2 flex items-center gap-4">
-            {envForm && ALL_ENVS.map((slug) => (
-              <label key={slug} className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={envForm[slug]}
-                  onChange={(e) =>
-                    setEnvForm((prev) =>
-                      prev ? { ...prev, [slug]: e.target.checked } : prev
-                    )
-                  }
-                />
-                {slug}
-              </label>
-            ))}
-            <Button size="sm" className="ml-auto" onClick={handleSaveEnabledEnvs}>
+            {envForm &&
+              ALL_ENVS.map((slug) => (
+                <label key={slug} className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={envForm[slug]}
+                    onChange={(e) =>
+                      setEnvForm((prev) =>
+                        prev ? { ...prev, [slug]: e.target.checked } : prev
+                      )
+                    }
+                  />
+                  {slug}
+                </label>
+              ))}
+            <Button
+              size="sm"
+              className="ml-auto"
+              onClick={handleSaveEnabledEnvs}
+            >
               Save
             </Button>
           </div>
@@ -408,22 +434,22 @@ function WorkspaceDetailContent() {
                               <div className="flex justify-end gap-2">
                                 {a.kind === "ENV_VAR" && (
                                   <>
-                                {/* Reveal removed – keep only copy */}
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  title="Copy value"
-                                  disabled={copyingId === a.id}
-                                  onClick={() => handleCopy(a)}
-                                >
-                                  {copyingId === a.id ? (
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                  ) : copiedId === a.id ? (
-                                    <Check className="h-4 w-4 text-green-600" />
-                                  ) : (
-                                    <Copy className="h-4 w-4" />
-                                  )}
-                                </Button>
+                                    {/* Reveal removed – keep only copy */}
+                                    <Button
+                                      variant="outline"
+                                      size="icon"
+                                      title="Copy value"
+                                      disabled={copyingId === a.id}
+                                      onClick={() => handleCopy(a)}
+                                    >
+                                      {copyingId === a.id ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : copiedId === a.id ? (
+                                        <Check className="h-4 w-4 text-green-600" />
+                                      ) : (
+                                        <Copy className="h-4 w-4" />
+                                      )}
+                                    </Button>
                                   </>
                                 )}
                                 <Button
