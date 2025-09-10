@@ -16,6 +16,7 @@ import { http } from "@/lib/api/http";
 import {
   deleteWorkspace,
   getWorkspace,
+  updateEnabledEnvironments,
   type Workspace,
 } from "@/lib/api/workspaces";
 import type {
@@ -27,12 +28,7 @@ import type {
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "../../../components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs";
 
 /**
  * Workspace detail page (placeholder implementation)
@@ -40,6 +36,10 @@ import {
  * TODO: Implement full workspace detail page with environment tabs and artifacts table
  * This is a minimal implementation to satisfy type checking and routing
  */
+const ALL_ENVS = ["DEV", "STAGING", "PROD"] as const;
+type EnvSlug = typeof ALL_ENVS[number];
+type EnabledFormState = Record<EnvSlug, boolean>;
+
 function WorkspaceDetailContent() {
   const params = useParams();
   const searchParams = useSearchParams();
@@ -57,6 +57,7 @@ function WorkspaceDetailContent() {
   const [kindFilter, setKindFilter] = useState<ArtifactKind | "ALL">("ALL");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [envForm, setEnvForm] = useState<EnabledFormState | null>(null);
 
   const currentEnv: EnvCode = useMemo(() => {
     const env = (searchParams.get("env") as EnvCode) || "DEV";
@@ -70,6 +71,10 @@ function WorkspaceDetailContent() {
         setLoadingWorkspace(true);
         const ws = await getWorkspace(workspaceId);
         setWorkspace(ws);
+        try {
+          const enabled = (ws.enabled_environments?.map((e) => e.slug) || ALL_ENVS) as EnvSlug[];
+          setEnvForm({ DEV: enabled.includes("DEV"), STAGING: enabled.includes("STAGING"), PROD: enabled.includes("PROD") });
+        } catch {}
       } catch (err) {
         console.error(err);
         setError("Failed to load workspace");
@@ -112,6 +117,19 @@ function WorkspaceDetailContent() {
   const onEnvChange = (env: EnvCode) => {
     const url = `/w/${workspaceId}?env=${env}`;
     router.replace(url);
+  };
+
+  const handleSaveEnabledEnvs = async () => {
+    if (!envForm) return;
+    const enabled = ALL_ENVS.filter((e) => envForm[e]);
+    try {
+      await updateEnabledEnvironments(workspaceId, Array.from(enabled));
+      const ws = await getWorkspace(workspaceId);
+      setWorkspace(ws);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to update environments";
+      alert(msg);
+    }
   };
 
   const handleDelete = async (id: number) => {
@@ -259,6 +277,32 @@ function WorkspaceDetailContent() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+        </div>
+        {/* Enabled Environments mini-form */}
+        <div className="mb-4 p-3 border rounded-lg">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="font-medium">Enabled Environments</div>
+            <div className="text-xs text-muted-foreground">Toggle tabs available for this workspace</div>
+          </div>
+          <div className="mt-2 flex items-center gap-4">
+            {envForm && ALL_ENVS.map((slug) => (
+              <label key={slug} className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={envForm[slug]}
+                  onChange={(e) =>
+                    setEnvForm((prev) =>
+                      prev ? { ...prev, [slug]: e.target.checked } : prev
+                    )
+                  }
+                />
+                {slug}
+              </label>
+            ))}
+            <Button size="sm" className="ml-auto" onClick={handleSaveEnabledEnvs}>
+              Save
+            </Button>
+          </div>
         </div>
         {/* Type filter chips */}
         <div className="mb-4 flex flex-wrap gap-2">

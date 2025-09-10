@@ -18,6 +18,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { updateArtifact } from "@/lib/api/artifacts";
 import { http } from "@/lib/api/http";
 import type { Artifact, ArtifactKind } from "@/types/artifacts";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import type { EnvCode } from "@/types/artifacts";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -26,6 +28,7 @@ import { useForm } from "react-hook-form";
 
 interface EditArtifactFormData {
   notes?: string;
+  environment?: EnvCode;
   key?: string;
   value?: string;
   title?: string;
@@ -79,7 +82,10 @@ function EditArtifactContent() {
         );
         setArtifact(data);
         // Initialize form fields depending on kind
-        const base: EditArtifactFormData = { notes: data.notes || "" };
+        const base: EditArtifactFormData = {
+          notes: data.notes || "",
+          environment: data.environment as EnvCode,
+        };
         if (data.kind === "ENV_VAR") {
           const envVar = data as Extract<Artifact, { kind: "ENV_VAR" }>;
           base.key = envVar.key;
@@ -214,6 +220,29 @@ function EditArtifactContent() {
                 {error && (
                   <div className="text-sm text-destructive">{error}</div>
                 )}
+                {/* Environment selection for all kinds */}
+                <FormField
+                  control={form.control}
+                  name="environment"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Environment</FormLabel>
+                      <FormControl>
+                        <RadioGroup value={field.value} onValueChange={field.onChange} className="flex gap-6">
+                          {(["DEV", "STAGING", "PROD"] as const).map((slug) => (
+                            <div key={slug} className="flex items-center space-x-2">
+                              <RadioGroupItem value={slug} id={`env-${slug}`} />
+                              <label htmlFor={`env-${slug}`} className="cursor-pointer">
+                                {slug === "DEV" ? "Development" : slug === "STAGING" ? "Staging" : "Production"}
+                              </label>
+                            </div>
+                          ))}
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 {artifact.kind === "ENV_VAR" && (
                   <>
                     <FormField

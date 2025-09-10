@@ -83,3 +83,15 @@ export async function importWorkspace(
   }>("/workspaces/import/", exportData);
   return data.workspace;
 }
+
+// Enabled environments management (M2M join control)
+export async function updateEnabledEnvironments(
+  id: number,
+  enabled: Array<"DEV" | "STAGING" | "PROD">
+): Promise<Array<{ slug: "DEV" | "STAGING" | "PROD"; name: string; display_order: number }>> {
+  const { data } = await http.patch<{ enabled_environments: Array<{ slug: "DEV" | "STAGING" | "PROD"; name: string; display_order: number }> }>(
+    `/workspaces/${id}/enabled_environments/`,
+    { enabled }
+  );
+  return data.enabled_environments;
+}
