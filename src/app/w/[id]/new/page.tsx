@@ -187,7 +187,10 @@ function CreateArtifactContent() {
 
       // Create the artifact
       await createArtifact(workspaceId, artifactDto);
-
+      // Prefetch/refresh workspace counts for smoother UX
+      try {
+        await getWorkspace(workspaceId);
+      } catch {}
       // Redirect back to workspace with the environment tab
       router.push(`/w/${workspaceId}?env=${data.environment}`);
     } catch (error) {

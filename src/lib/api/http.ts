@@ -54,6 +54,29 @@ export function attachAuth(
         }
       }
 
+      // Handle 403 when credentials were not attached yet (race on first load)
+      if (error.response?.status === 403) {
+        try {
+          const originalRequest = error.config || {};
+          // Avoid infinite loop
+          if (originalRequest._retry403) {
+            return Promise.reject(normalizeError(error));
+          }
+
+          // Only attempt when we can fetch a token and there is no header
+          const hasAuthHeader = !!(originalRequest.headers && originalRequest.headers.Authorization);
+          const freshToken = await getToken();
+          if (freshToken && !hasAuthHeader) {
+            originalRequest._retry403 = true;
+            originalRequest.headers = originalRequest.headers || {};
+            originalRequest.headers.Authorization = `Bearer ${freshToken}`;
+            return http(originalRequest);
+          }
+        } catch {
+          // fall through to normalized error
+        }
+      }
+
       return Promise.reject(normalizeError(error));
     }
   );

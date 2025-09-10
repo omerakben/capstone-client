@@ -148,6 +148,10 @@ function EditArtifactContent() {
         return;
       }
       await updateArtifact(workspaceId, artifact.id, data);
+      // Optionally warm the workspace request; actual refresh happens on landing
+      try {
+        await http.get(`/workspaces/${artifact.workspace}/`);
+      } catch {}
       router.push(`/w/${artifact.workspace}?env=${artifact.environment}`);
     } catch (e) {
       console.error(e);

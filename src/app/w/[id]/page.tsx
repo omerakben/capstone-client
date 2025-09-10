@@ -1,26 +1,11 @@
 "use client";
-import {
-  ArrowLeft,
-  Check,
-  Copy,
-  Eye,
-  Files,
-  Loader2,
-  Pencil,
-  Trash2,
-} from "lucide-react";
+import { ArrowLeft, Check, Copy, Files, Loader2, Pencil, Trash2 } from "lucide-react";
 
 import { AuthGuard } from "@/components/AuthGuard";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+// Reveal dialog removed; keep only copy functionality
 import { Input } from "@/components/ui/input";
 import {
   deleteArtifact,
@@ -66,14 +51,9 @@ function WorkspaceDetailContent() {
   const [loadingArtifacts, setLoadingArtifacts] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
-  const [revealingId, setRevealingId] = useState<number | null>(null);
+  // Reveal dialog removed; copy remains
   const [copyingId, setCopyingId] = useState<number | null>(null);
   const [copiedId, setCopiedId] = useState<number | null>(null);
-  const [reveal, setReveal] = useState<{
-    id: number;
-    key: string;
-    value: string;
-  } | null>(null);
   const [kindFilter, setKindFilter] = useState<ArtifactKind | "ALL">("ALL");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -140,6 +120,10 @@ function WorkspaceDetailContent() {
     try {
       await deleteArtifact(workspaceId, id);
       await fetchArtifacts();
+      try {
+        const ws = await getWorkspace(workspaceId);
+        setWorkspace(ws);
+      } catch {}
     } catch (err) {
       console.error(err);
       alert("Delete failed");
@@ -166,6 +150,10 @@ function WorkspaceDetailContent() {
         targetEnv as EnvCode
       );
       await fetchArtifacts();
+      try {
+        const ws = await getWorkspace(workspaceId);
+        setWorkspace(ws);
+      } catch {}
     } catch (err) {
       console.error(err);
       alert("Duplicate failed");
@@ -175,24 +163,10 @@ function WorkspaceDetailContent() {
   };
 
   const fetchEnvVarDetail = async (artifactId: number) => {
-    const { data } = await http.get<Artifact>(
-      `/workspaces/${workspaceId}/artifacts/${artifactId}/`
+    const { data } = await http.get<EnvVarArtifact & { value: string }>(
+      `/workspaces/${workspaceId}/artifacts/${artifactId}/reveal_value/`
     );
     return data as EnvVarArtifact;
-  };
-
-  const handleReveal = async (artifact: Artifact) => {
-    if (artifact.kind !== "ENV_VAR") return;
-    setRevealingId(artifact.id);
-    try {
-      const env = await fetchEnvVarDetail(artifact.id);
-      setReveal({ id: env.id, key: env.key, value: env.value });
-    } catch (err) {
-      console.error(err);
-      alert("Failed to reveal value");
-    } finally {
-      setRevealingId(null);
-    }
   };
 
   const handleCopy = async (artifact: Artifact) => {
@@ -390,34 +364,22 @@ function WorkspaceDetailContent() {
                               <div className="flex justify-end gap-2">
                                 {a.kind === "ENV_VAR" && (
                                   <>
-                                    <Button
-                                      variant="outline"
-                                      size="icon"
-                                      title="Reveal value"
-                                      disabled={revealingId === a.id}
-                                      onClick={() => handleReveal(a)}
-                                    >
-                                      {revealingId === a.id ? (
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                      ) : (
-                                        <Eye className="h-4 w-4" />
-                                      )}
-                                    </Button>
-                                    <Button
-                                      variant="outline"
-                                      size="icon"
-                                      title="Copy value"
-                                      disabled={copyingId === a.id}
-                                      onClick={() => handleCopy(a)}
-                                    >
-                                      {copyingId === a.id ? (
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                      ) : copiedId === a.id ? (
-                                        <Check className="h-4 w-4 text-green-600" />
-                                      ) : (
-                                        <Copy className="h-4 w-4" />
-                                      )}
-                                    </Button>
+                                {/* Reveal removed – keep only copy */}
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  title="Copy value"
+                                  disabled={copyingId === a.id}
+                                  onClick={() => handleCopy(a)}
+                                >
+                                  {copyingId === a.id ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : copiedId === a.id ? (
+                                    <Check className="h-4 w-4 text-green-600" />
+                                  ) : (
+                                    <Copy className="h-4 w-4" />
+                                  )}
+                                </Button>
                                   </>
                                 )}
                                 <Button
@@ -468,41 +430,7 @@ function WorkspaceDetailContent() {
                 )}
               </CardContent>
             </Card>
-            {/* Reveal Dialog */}
-            <Dialog open={!!reveal} onOpenChange={(o) => !o && setReveal(null)}>
-              <DialogContent className="z-[10050]">
-                <DialogHeader>
-                  <DialogTitle>Reveal value</DialogTitle>
-                  <DialogDescription>
-                    {reveal ? (
-                      <div className="space-y-2">
-                        <div className="text-xs text-muted-foreground">
-                          {reveal.key}
-                        </div>
-                        <div className="rounded-md border bg-accent/30 p-3 font-mono break-all">
-                          {reveal.value}
-                        </div>
-                        <div className="flex justify-end">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={async () => {
-                              try {
-                                await navigator.clipboard.writeText(
-                                  reveal.value
-                                );
-                              } catch {}
-                            }}
-                          >
-                            <Copy className="mr-2 h-4 w-4" /> Copy
-                          </Button>
-                        </div>
-                      </div>
-                    ) : null}
-                  </DialogDescription>
-                </DialogHeader>
-              </DialogContent>
-            </Dialog>
+            {/* Reveal dialog removed */}
           </TabsContent>
         </Tabs>
       </div>
