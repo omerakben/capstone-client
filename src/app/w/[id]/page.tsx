@@ -21,6 +21,7 @@ import { Card, CardContent } from "@/components/ui/card";
 // Reveal dialog removed; keep only copy functionality
 import { EnvironmentToggle } from "@/components/ui/environment-toggle";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   deleteArtifact,
   duplicateArtifactToEnvironment,
@@ -42,7 +43,7 @@ import type {
 } from "@/types/artifacts";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Tabs,
   TabsContent,
@@ -61,6 +62,7 @@ type EnvSlug = (typeof ALL_ENVS)[number];
 type EnabledFormState = Record<EnvSlug, boolean>;
 
 function WorkspaceDetailContent() {
+  const { user } = useAuth();
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -85,8 +87,11 @@ function WorkspaceDetailContent() {
     return ["DEV", "STAGING", "PROD"].includes(env) ? env : "DEV";
   }, [searchParams]);
 
-  // Load workspace meta
+  // Load workspace meta (single-run in dev + gate on auth)
+  const didLoadWorkspace = useRef(false);
   useEffect(() => {
+    if (!user || !workspaceId || didLoadWorkspace.current) return;
+    didLoadWorkspace.current = true;
     const loadWorkspace = async () => {
       try {
         setLoadingWorkspace(true);
@@ -104,12 +109,14 @@ function WorkspaceDetailContent() {
       } catch (err) {
         console.error(err);
         setError("Failed to load workspace");
+        // allow retry if it failed (e.g., first call without auth)
+        didLoadWorkspace.current = false;
       } finally {
         setLoadingWorkspace(false);
       }
     };
-    if (workspaceId) loadWorkspace();
-  }, [workspaceId]);
+    void loadWorkspace();
+  }, [user, workspaceId]);
 
   // Debounce search input
   useEffect(() => {
@@ -137,8 +144,9 @@ function WorkspaceDetailContent() {
   }, [workspaceId, currentEnv, debouncedSearch, kindFilter]);
 
   useEffect(() => {
-    if (workspaceId) fetchArtifacts();
-  }, [workspaceId, currentEnv, fetchArtifacts]);
+    if (!user || !workspaceId) return;
+    fetchArtifacts();
+  }, [user, workspaceId, currentEnv, fetchArtifacts]);
 
   const onEnvChange = (env: EnvCode) => {
     const url = `/w/${workspaceId}?env=${env}`;
