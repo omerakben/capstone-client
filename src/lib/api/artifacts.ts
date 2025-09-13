@@ -97,6 +97,7 @@ export interface Tag {
   workspace: number;
   created_at: string;
   updated_at: string;
+  usage_count?: number;
 }
 
 export async function listTags(workspaceId: number): Promise<Tag[]> {

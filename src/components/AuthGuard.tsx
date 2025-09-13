@@ -17,14 +17,38 @@ interface AuthGuardProps {
  * Renders children if user is authenticated
  */
 export function AuthGuard({ children, fallback }: AuthGuardProps) {
-  const { user, loading } = useAuth();
+  const { user, loading, configError, missingEnv } = useAuth();
 
   useEffect(() => {
-    // Only redirect after loading is complete and no user
-    if (!loading && !user) {
+    // Only redirect after loading is complete, no user, and no config error
+    if (!loading && !user && !configError) {
       redirect("/login");
     }
-  }, [user, loading]);
+  }, [user, loading, configError]);
+
+  // Show config error panel if configError is present
+  if (configError) {
+    return (
+      <div className="flex min-h-screen items-center justify-center p-6">
+        <div className="max-w-md space-y-4 text-center">
+          <h2 className="text-xl font-semibold">Configuration Error</h2>
+          <p className="text-sm text-muted-foreground whitespace-pre-line">
+            {configError}
+          </p>
+          {missingEnv.length > 0 && (
+            <ul className="mt-2 list-disc list-inside text-xs text-left">
+              {missingEnv.map((k) => (
+                <li key={k}>{k}</li>
+              ))}
+            </ul>
+          )}
+          <p className="text-xs text-muted-foreground">
+            Set the variables above (e.g. in .env.local) and reload the app.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   // Show loading state while checking auth
   if (loading) {

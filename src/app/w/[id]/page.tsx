@@ -156,10 +156,34 @@ function WorkspaceDetailContent() {
   const handleSaveEnabledEnvs = async () => {
     if (!envForm) return;
     const enabled = ALL_ENVS.filter((e) => envForm[e]);
+    // Prevent saving empty set (must have at least one environment)
+    if (enabled.length === 0) {
+      alert("At least one environment must remain enabled.");
+      return;
+    }
     try {
       await updateEnabledEnvironments(workspaceId, Array.from(enabled));
       const ws = await getWorkspace(workspaceId);
       setWorkspace(ws);
+      // Re-sync local envForm state from canonical server response
+      try {
+        const enabledSlugs = (ws.enabled_environments?.map((e) => e.slug) ||
+          ALL_ENVS) as EnvSlug[];
+        setEnvForm({
+          DEV: enabledSlugs.includes("DEV"),
+          STAGING: enabledSlugs.includes("STAGING"),
+          PROD: enabledSlugs.includes("PROD"),
+        });
+        // If current environment no longer enabled, redirect to first available
+        if (!enabledSlugs.includes(currentEnv)) {
+          const fallback = (["DEV", "STAGING", "PROD"].find((s) =>
+            enabledSlugs.includes(s as EnvSlug)
+          ) || "DEV") as EnvCode;
+          router.replace(`/w/${workspaceId}?env=${fallback}`);
+        }
+        // Refresh artifacts to reflect any environment enablement changes (counts, filters)
+        void fetchArtifacts();
+      } catch {}
       setSavedFlash(true);
       setTimeout(() => setSavedFlash(false), 1400);
     } catch (err) {
@@ -229,12 +253,26 @@ function WorkspaceDetailContent() {
     setCopyingId(artifact.id);
     try {
       const env = await fetchEnvVarDetail(artifact.id);
-      await navigator.clipboard.writeText(env.value ?? "");
+      try {
+        await navigator.clipboard.writeText(env.value ?? "");
+      } catch {
+        // Fallback for environments where Clipboard API isn't available/allowed
+        const ta = document.createElement("textarea");
+        ta.value = env.value ?? "";
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
       setCopiedId(artifact.id);
       setTimeout(() => setCopiedId(null), 1200);
     } catch (err) {
       console.error(err);
-      alert("Copy failed");
+      const maybe = err as { message?: string };
+      alert(maybe?.message || "Copy failed");
     } finally {
       setCopyingId(null);
     }

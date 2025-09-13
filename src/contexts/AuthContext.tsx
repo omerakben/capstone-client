@@ -1,4 +1,5 @@
 "use client";
+import { validatePublicEnv } from "@/lib/env";
 import { getFirebaseAuth } from "@/lib/firebase/client";
 import {
   createUserWithEmailAndPassword,
@@ -22,6 +23,8 @@ import React, {
 interface AuthContextValue {
   user: User | null;
   loading: boolean;
+  configError: string | null;
+  missingEnv: string[];
   signIn(email: string, password: string): Promise<void>;
   signInWithGoogle(): Promise<void>;
   signUp(email: string, password: string): Promise<void>;
@@ -34,49 +37,81 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const auth = getFirebaseAuth();
+  // Env validation first
+  const missingEnv = validatePublicEnv();
+  const [configError, setConfigError] = useState<string | null>(
+    missingEnv.length
+      ? `Missing required public env vars: ${missingEnv.join(", ")}`
+      : null
+  );
+
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  // cache last token to avoid redundant async lookups within short bursts
   const lastTokenRef = useRef<{ token: string; ts: number } | null>(null);
 
   useEffect(() => {
-    // Real Firebase auth only
-    const unsub = onAuthStateChanged(auth, (u) => {
-      setUser(u);
+    if (configError) {
+      // Skip Firebase initialization entirely
       setLoading(false);
-    });
-    return () => unsub();
-  }, [auth]);
+      return;
+    }
+    let unsub: (() => void) | null = null;
+    try {
+      const auth = getFirebaseAuth();
+      unsub = onAuthStateChanged(auth, (u) => {
+        setUser(u);
+        setLoading(false);
+      });
+    } catch (e: unknown) {
+      const msg =
+        typeof e === "object" && e && "message" in e
+          ? String((e as { message?: unknown }).message)
+          : "Failed to initialize authentication";
+      setConfigError(msg);
+      setLoading(false);
+    }
+    return () => {
+      if (unsub) unsub();
+    };
+  }, [configError]);
 
   const signIn = useCallback(
     async (email: string, password: string) => {
+      if (configError) throw new Error(configError);
+      const auth = getFirebaseAuth();
       await signInWithEmailAndPassword(auth, email, password);
     },
-    [auth]
+    [configError]
   );
 
   const signInWithGoogle = useCallback(async () => {
+    if (configError) throw new Error(configError);
+    const auth = getFirebaseAuth();
     const provider = new GoogleAuthProvider();
     provider.addScope("email");
     provider.addScope("profile");
     await signInWithPopup(auth, provider);
-  }, [auth]);
+  }, [configError]);
 
   const signUp = useCallback(
     async (email: string, password: string) => {
+      if (configError) throw new Error(configError);
+      const auth = getFirebaseAuth();
       await createUserWithEmailAndPassword(auth, email, password);
     },
-    [auth]
+    [configError]
   );
 
   const signOut = useCallback(async () => {
     lastTokenRef.current = null;
+    if (configError) return; // nothing to sign out
+    const auth = getFirebaseAuth();
     await fbSignOut(auth);
-  }, [auth]);
+  }, [configError]);
 
   const getTokenCached = useCallback(
     async (force?: boolean): Promise<string | null> => {
+      if (configError) return null;
       if (!user) return null;
       const now = Date.now();
       if (
@@ -96,12 +131,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         return null;
       }
     },
-    [user]
+    [user, configError]
   );
 
   const value: AuthContextValue = {
     user,
     loading,
+    configError,
+    missingEnv,
     signIn,
     signInWithGoogle,
     signUp,

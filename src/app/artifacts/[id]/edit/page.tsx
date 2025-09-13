@@ -18,15 +18,18 @@ import { SecretInput } from "@/components/ui/secret-input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   createTag,
+  deleteTag,
   listTags,
   updateArtifact,
+  type CreateArtifactInput,
+  type CreateEnvVarInput,
   type Tag,
 } from "@/lib/api/artifacts";
 import { http } from "@/lib/api/http";
 import type { Artifact, ArtifactKind, EnvCode } from "@/types/artifacts";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -52,16 +55,14 @@ export default function EditArtifactPage() {
 function EditArtifactContent() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const artifactId = parseInt(params.id as string, 10);
   // workspaceId is provided via query parameter from Workspace page
-  const qs =
-    typeof window !== "undefined"
-      ? new URLSearchParams(window.location.search)
-      : null;
-  const workspaceId =
-    qs && qs.get("workspaceId")
-      ? parseInt(qs.get("workspaceId") as string, 10)
-      : NaN;
+  // Derive workspaceId from query param; if absent we'll attempt a fallback
+  const initialWorkspaceId = searchParams.get("workspaceId")
+    ? parseInt(searchParams.get("workspaceId") as string, 10)
+    : NaN;
+  const [workspaceId, setWorkspaceId] = useState<number>(initialWorkspaceId);
   const [artifact, setArtifact] = useState<Artifact | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -70,24 +71,130 @@ function EditArtifactContent() {
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
   const [newTagName, setNewTagName] = useState("");
   const [tagSaving, setTagSaving] = useState(false);
+  // Track if we already attempted a secondary fallback probe after an initial 404
+  const [retriedFallback, setRetriedFallback] = useState(false);
 
   const form = useForm<EditArtifactFormData>({
-    defaultValues: {},
+    defaultValues: {
+      notes: "",
+      environment: "DEV" as EnvCode,
+      key: "",
+      value: "",
+      title: "",
+      content: "",
+      url: "",
+      label: "",
+    },
   });
 
   useEffect(() => {
+    console.log(
+      `🔍 Edit page useEffect triggered - artifactId: ${artifactId}, workspaceId: ${workspaceId}, retriedFallback: ${retriedFallback}`
+    );
+
     const load = async () => {
       try {
-        setLoading(true);
-        if (!workspaceId || Number.isNaN(workspaceId)) {
-          setError(
-            "Missing workspace context. Navigate from a workspace page."
-          );
-          return;
-        }
-        const { data } = await http.get<Artifact>(
-          `/workspaces/${workspaceId}/artifacts/${artifactId}/`
+        console.log(
+          `🚀 Starting load function for artifact ${artifactId} in workspace ${workspaceId}`
         );
+        setLoading(true);
+        setError(null); // Clear any previous errors
+
+        if (!workspaceId || Number.isNaN(workspaceId)) {
+          // Fallback: attempt to discover workspace by probing artifact across user workspaces (simple heuristic)
+          try {
+            const { data: wList } = await http.get<{ id: number }[]>(
+              "/workspaces/"
+            );
+            if (Array.isArray(wList)) {
+              for (const w of wList) {
+                try {
+                  const probe = await http.get<Artifact>(
+                    `/workspaces/${w.id}/artifacts/${artifactId}/`
+                  );
+                  if (probe?.data?.workspace) {
+                    setWorkspaceId(w.id);
+                    break;
+                  }
+                } catch {
+                  /* ignore 404 */
+                }
+              }
+            }
+          } catch {
+            /* ignore */
+          }
+          if (!workspaceId || Number.isNaN(workspaceId)) {
+            setError(
+              "Missing workspace context. Navigate from a workspace page."
+            );
+            return;
+          }
+        }
+
+        let data: Artifact | null = null;
+        let retryCount = 0;
+        const maxRetries = 3;
+
+        // Retry loop to handle authentication timing issues
+        while (!data && retryCount < maxRetries) {
+          try {
+            const resp = await http.get<Artifact>(
+              `/workspaces/${workspaceId}/artifacts/${artifactId}/`
+            );
+            data = resp.data;
+            break; // Success, exit retry loop
+          } catch (err: unknown) {
+            retryCount++;
+            const status =
+              typeof err === "object" && err && "response" in err
+                ? (err as { response?: { status?: number } }).response?.status
+                : undefined;
+
+            console.log(
+              `Attempt ${retryCount}/${maxRetries} failed with status ${status}`
+            );
+
+            if (status === 404 && !retriedFallback && retryCount === 1) {
+              // One-time retry: artifact might belong to a different workspace than provided in query
+              try {
+                const { data: wList } = await http.get<{ id: number }[]>(
+                  "/workspaces/"
+                );
+                if (Array.isArray(wList)) {
+                  for (const w of wList) {
+                    if (w.id === workspaceId) continue;
+                    try {
+                      const probe = await http.get<Artifact>(
+                        `/workspaces/${w.id}/artifacts/${artifactId}/`
+                      );
+                      if (probe?.data) {
+                        setWorkspaceId(w.id);
+                        data = probe.data;
+                        break;
+                      }
+                    } catch {}
+                  }
+                }
+              } catch {}
+              setRetriedFallback(true);
+              if (data) break; // Success from workspace fallback
+            }
+
+            // If this was the last retry, we'll handle the error below
+            if (retryCount >= maxRetries) {
+              throw err;
+            }
+
+            // Wait before retrying (exponential backoff)
+            await new Promise((resolve) =>
+              setTimeout(resolve, 1000 * retryCount)
+            );
+          }
+        }
+        if (!data) {
+          throw new Error("Artifact not found or no longer accessible");
+        }
         setArtifact(data);
         // Load tags in parallel
         try {
@@ -119,15 +226,19 @@ function EditArtifactContent() {
           base.label = doc.label || "";
         }
         form.reset(base);
-      } catch (e) {
+      } catch (e: unknown) {
         console.error(e);
-        setError("Failed to load artifact");
+        const msg =
+          typeof e === "object" && e && "message" in e
+            ? String((e as { message?: unknown }).message)
+            : "Failed to load artifact";
+        setError(msg || "Failed to load artifact");
       } finally {
         setLoading(false);
       }
     };
     if (artifactId) load();
-  }, [artifactId, form, workspaceId]);
+  }, [artifactId, form, workspaceId, retriedFallback]);
 
   const validate = (
     kind: ArtifactKind,
@@ -171,10 +282,18 @@ function EditArtifactContent() {
         setError("Missing workspace context.");
         return;
       }
-      await updateArtifact(workspaceId, artifact.id, {
+      // Prepare PATCH dto; omit blank ENV_VAR value to keep unchanged
+      const dto: Partial<CreateArtifactInput> & { tags?: number[] } = {
         ...data,
         tags: selectedTags,
-      });
+      };
+      if (artifact.kind === "ENV_VAR") {
+        const envDto = dto as Partial<CreateEnvVarInput> & { tags?: number[] };
+        if ((envDto.value ?? "") === "") {
+          delete envDto.value;
+        }
+      }
+      await updateArtifact(workspaceId, artifact.id, dto);
       // Optionally warm the workspace request; actual refresh happens on landing
       try {
         await http.get(`/workspaces/${artifact.workspace}/`);
@@ -182,7 +301,8 @@ function EditArtifactContent() {
       router.push(`/w/${artifact.workspace}?env=${artifact.environment}`);
     } catch (e) {
       console.error(e);
-      setError("Save failed");
+      const maybe = e as { message?: string };
+      setError(maybe?.message || "Save failed");
     } finally {
       setSaving(false);
     }
@@ -405,6 +525,41 @@ function EditArtifactContent() {
                         placeholder="New tag"
                         value={newTagName}
                         onChange={(e) => setNewTagName(e.target.value)}
+                        onKeyDown={async (e) => {
+                          if (e.key === "Enter" && newTagName.trim()) {
+                            e.preventDefault();
+                            if (!workspaceId) return;
+                            setTagSaving(true);
+                            try {
+                              const t = await createTag(
+                                workspaceId,
+                                newTagName.trim()
+                              );
+                              setAllTags((prev) =>
+                                [...prev, t].sort((a, b) =>
+                                  a.name.localeCompare(b.name)
+                                )
+                              );
+                              setSelectedTags((prev) => [
+                                ...new Set([...prev, t.id]),
+                              ]);
+                              setNewTagName("");
+                            } catch (err) {
+                              const maybe = err as {
+                                code?: string;
+                                message?: string;
+                              };
+                              console.warn(
+                                "Create tag failed (Enter):",
+                                maybe?.code || "",
+                                maybe?.message || err
+                              );
+                              alert(maybe?.message || "Create tag failed");
+                            } finally {
+                              setTagSaving(false);
+                            }
+                          }
+                        }}
                         className="h-8 w-40"
                       />
                       <Button
@@ -429,8 +584,16 @@ function EditArtifactContent() {
                             ]);
                             setNewTagName("");
                           } catch (e) {
-                            console.error(e);
-                            alert("Create tag failed");
+                            const maybe = e as {
+                              code?: string;
+                              message?: string;
+                            };
+                            console.warn(
+                              "Create tag failed:",
+                              maybe?.code || "",
+                              maybe?.message || e
+                            );
+                            alert(maybe?.message || "Create tag failed");
                           } finally {
                             setTagSaving(false);
                           }
@@ -469,7 +632,48 @@ function EditArtifactContent() {
                                 : "bg-muted hover:bg-muted/70 border-muted-foreground/20 text-foreground")
                             }
                           >
-                            {t.name}
+                            <span>{t.name}</span>
+                            <span
+                              role="button"
+                              aria-label={`Delete tag ${t.name}`}
+                              title={`Delete tag${
+                                typeof t.usage_count === "number"
+                                  ? ` (used by ${t.usage_count} artifacts)`
+                                  : ""
+                              }`}
+                              className="ml-2 inline-flex items-center justify-center rounded-sm px-1 text-[10px] opacity-60 hover:opacity-100 hover:bg-background/40"
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                if (!workspaceId) return;
+                                const used =
+                                  typeof t.usage_count === "number"
+                                    ? t.usage_count
+                                    : 0;
+                                const ok = confirm(
+                                  used > 0
+                                    ? `Delete tag "${t.name}"? It is currently used by ${used} artifact(s).`
+                                    : `Delete tag "${t.name}"?`
+                                );
+                                if (!ok) return;
+                                try {
+                                  setTagSaving(true);
+                                  await deleteTag(workspaceId, t.id);
+                                  setAllTags((prev) =>
+                                    prev.filter((x) => x.id !== t.id)
+                                  );
+                                  setSelectedTags((prev) =>
+                                    prev.filter((id) => id !== t.id)
+                                  );
+                                } catch (e) {
+                                  const maybe = e as { message?: string };
+                                  alert(maybe?.message || "Delete tag failed");
+                                } finally {
+                                  setTagSaving(false);
+                                }
+                              }}
+                            >
+                              ×
+                            </span>
                           </button>
                         );
                       })}

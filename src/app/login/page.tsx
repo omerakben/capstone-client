@@ -28,7 +28,15 @@ interface FormValues {
 }
 
 export default function LoginPage() {
-  const { user, signIn, signInWithGoogle, signUp, loading } = useAuth();
+  const {
+    user,
+    signIn,
+    signInWithGoogle,
+    signUp,
+    loading,
+    configError,
+    missingEnv,
+  } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -85,6 +93,38 @@ export default function LoginPage() {
       // Currently, Firebase auth errors are handled by the auth context
     }
   };
+
+  if (configError) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-neutral-50 to-neutral-100 p-4">
+        <Card className="w-full max-w-md shadow-lg">
+          <CardHeader className="space-y-2 text-center">
+            <CardTitle className="text-2xl font-bold tracking-tight">
+              Configuration Error
+            </CardTitle>
+            <CardDescription className="text-neutral-600">
+              The application is not configured correctly.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-destructive whitespace-pre-line mb-3">
+              {configError}
+            </p>
+            {missingEnv.length > 0 && (
+              <ul className="mb-4 list-disc list-inside text-xs">
+                {missingEnv.map((k) => (
+                  <li key={k}>{k}</li>
+                ))}
+              </ul>
+            )}
+            <p className="text-xs text-muted-foreground">
+              Add the missing environment variables and reload the page.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-neutral-50 to-neutral-100 p-4">
