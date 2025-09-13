@@ -42,7 +42,9 @@ export function useWorkspaces(): UseWorkspacesResult {
       const message =
         err instanceof Error ? err.message : "Failed to fetch workspaces";
       setError(message);
-      console.error("Error fetching workspaces:", err);
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Error fetching workspaces:", err);
+      }
     } finally {
       setLoading(false);
     }

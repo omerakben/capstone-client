@@ -4,7 +4,6 @@ import { AuthGuard } from "@/components/AuthGuard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-// Removed modal in favor of dedicated page
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { type DocLink, listDocLinksGlobalServer } from "@/lib/api/docs";
@@ -21,9 +20,7 @@ function DocsContent() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const { toast } = useToast();
   const [wsId, setWsId] = useState<number | "">("");
-  // removed inline create state
-
-  // modal removed, no need to override body pointer-events
+  // State for workspace filter where applicable
 
   // Debounce search input
   useEffect(() => {
@@ -42,7 +39,9 @@ function DocsContent() {
         const links = await listDocLinksGlobalServer();
         setDocLinks(links);
       } catch {
-        console.error("Failed to fetch doc links");
+        if (process.env.NODE_ENV !== "production") {
+          console.error("Failed to fetch doc links");
+        }
         toast({
           title: "Error",
           description: "Failed to load documentation links. Please try again.",
@@ -70,7 +69,7 @@ function DocsContent() {
     void load();
   }, [wsId]);
 
-  // Inline creation removed; handled by /docs/new and /w/[id]/new
+  // Creation flows are handled by /docs/new and /w/[id]/new
 
   // Filter doc links based on search
   const filteredDocLinks = useMemo(() => {

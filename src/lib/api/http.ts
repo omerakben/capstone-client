@@ -24,11 +24,13 @@ export function attachAuth(
       config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
     } else {
-      // Log when requests are made without authentication
-      console.warn(
-        "Making API request without authentication token:",
-        config.url
-      );
+      // Log when requests are made without authentication (dev only)
+      if (process.env.NODE_ENV !== "production") {
+        console.warn(
+          "Making API request without authentication token:",
+          config.url
+        );
+      }
     }
     return config;
   });
@@ -87,7 +89,12 @@ export function attachAuth(
             }
           }
         } catch (refreshError) {
-          console.error("Token refresh failed during 403 retry:", refreshError);
+          if (process.env.NODE_ENV !== "production") {
+            console.error(
+              "Token refresh failed during 403 retry:",
+              refreshError
+            );
+          }
           // If we have signOut callback, use it
           if (signOutCallback) {
             await signOutCallback();

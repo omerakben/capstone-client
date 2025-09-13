@@ -88,7 +88,9 @@ function CreateArtifactContent() {
         const ws = await getWorkspace(workspaceId);
         setWorkspace(ws);
       } catch (error) {
-        console.error("Failed to load workspace:", error);
+        if (process.env.NODE_ENV !== "production") {
+          console.error("Failed to load workspace:", error);
+        }
         // If workspace doesn't exist, redirect to dashboard
         router.push("/dashboard");
       } finally {
@@ -194,7 +196,9 @@ function CreateArtifactContent() {
       // Redirect back to workspace with the environment tab
       router.push(`/w/${workspaceId}?env=${data.environment}`);
     } catch (error) {
-      console.error("Failed to create artifact:", error);
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Failed to create artifact:", error);
+      }
       form.setError("root", {
         message:
           error instanceof Error

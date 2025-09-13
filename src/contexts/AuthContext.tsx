@@ -59,10 +59,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       const auth = getFirebaseAuth();
       unsub = onAuthStateChanged(auth, (u) => {
-        console.debug(
-          "Auth state changed:",
-          u ? `User: ${u.uid}` : "User signed out"
-        );
+        if (process.env.NODE_ENV !== "production") {
+          console.debug(
+            "Auth state changed:",
+            u ? `User: ${u.uid}` : "User signed out"
+          );
+        }
         setUser(u);
         setLoading(false);
       });
@@ -116,14 +118,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const getTokenCached = useCallback(
     async (force?: boolean): Promise<string | null> => {
       if (configError) {
-        console.warn(
-          "Auth: Cannot get token due to config error:",
-          configError
-        );
+        if (process.env.NODE_ENV !== "production") {
+          console.warn(
+            "Auth: Cannot get token due to config error:",
+            configError
+          );
+        }
         return null;
       }
       if (!user) {
-        console.warn("Auth: Cannot get token - user not authenticated");
+        if (process.env.NODE_ENV !== "production") {
+          console.warn("Auth: Cannot get token - user not authenticated");
+        }
         return null;
       }
       const now = Date.now();
@@ -134,12 +140,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         lastTokenRef.current &&
         now - lastTokenRef.current.ts < 30_000
       ) {
-        console.debug("Auth: Using cached token");
+        if (process.env.NODE_ENV !== "production") {
+          console.debug("Auth: Using cached token");
+        }
         return lastTokenRef.current.token;
       }
 
       try {
-        console.debug("Auth: Fetching fresh token, force=", force);
+        if (process.env.NODE_ENV !== "production") {
+          console.debug("Auth: Fetching fresh token, force=", force);
+        }
         // Always force refresh if cache is expired or force is requested
         const shouldForceRefresh =
           force ||
@@ -148,15 +158,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         const token = await getIdToken(user, shouldForceRefresh);
         if (token) {
           lastTokenRef.current = { token, ts: now };
-          console.debug("Auth: Successfully obtained token");
+          if (process.env.NODE_ENV !== "production") {
+            console.debug("Auth: Successfully obtained token");
+          }
         } else {
-          console.warn(
-            "Auth: Failed to obtain token - getIdToken returned null"
-          );
+          if (process.env.NODE_ENV !== "production") {
+            console.warn(
+              "Auth: Failed to obtain token - getIdToken returned null"
+            );
+          }
         }
         return token;
       } catch (error) {
-        console.error("Failed to get Firebase token:", error);
+        if (process.env.NODE_ENV !== "production") {
+          console.error("Failed to get Firebase token:", error);
+        }
         // Clear cache on error
         lastTokenRef.current = null;
         return null;

@@ -34,7 +34,9 @@ export async function listWorkspaces(): Promise<Workspace[]> {
   if (maybe && Array.isArray(maybe.results)) {
     return maybe.results;
   }
-  console.warn("Unexpected workspaces response shape:", data);
+  if (process.env.NODE_ENV !== "production") {
+    console.warn("Unexpected workspaces response shape:", data);
+  }
   return [];
 }
 

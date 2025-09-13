@@ -29,7 +29,9 @@ export async function listArtifacts(
   if (maybe && Array.isArray(maybe.results)) {
     return maybe.results;
   }
-  console.warn("Unexpected artifacts response shape:", data);
+  if (process.env.NODE_ENV !== "production") {
+    console.warn("Unexpected artifacts response shape:", data);
+  }
   return [];
 }
 

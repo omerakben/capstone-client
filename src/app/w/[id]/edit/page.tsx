@@ -42,7 +42,9 @@ function EditWorkspaceContent() {
         setName(ws.name);
         setDescription(ws.description || "");
       } catch (e) {
-        console.error(e);
+        if (process.env.NODE_ENV !== "production") {
+          console.error(e);
+        }
         setError("Failed to load workspace");
       } finally {
         setLoading(false);
@@ -62,7 +64,9 @@ function EditWorkspaceContent() {
       });
       router.push(`/w/${workspaceId}`);
     } catch (e) {
-      console.error(e);
+      if (process.env.NODE_ENV !== "production") {
+        console.error(e);
+      }
       setError("Save failed");
     } finally {
       setSaving(false);
@@ -81,7 +85,9 @@ function EditWorkspaceContent() {
       await deleteWorkspace(workspaceId);
       router.push("/workspaces");
     } catch (e) {
-      console.error(e);
+      if (process.env.NODE_ENV !== "production") {
+        console.error(e);
+      }
       alert("Delete failed");
     } finally {
       setDeleting(false);

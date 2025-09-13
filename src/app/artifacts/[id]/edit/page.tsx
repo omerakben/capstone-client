@@ -88,15 +88,8 @@ function EditArtifactContent() {
   });
 
   useEffect(() => {
-    console.log(
-      `🔍 Edit page useEffect triggered - artifactId: ${artifactId}, workspaceId: ${workspaceId}, retriedFallback: ${retriedFallback}`
-    );
-
     const load = async () => {
       try {
-        console.log(
-          `🚀 Starting load function for artifact ${artifactId} in workspace ${workspaceId}`
-        );
         setLoading(true);
         setError(null); // Clear any previous errors
 
@@ -151,9 +144,11 @@ function EditArtifactContent() {
                 ? (err as { response?: { status?: number } }).response?.status
                 : undefined;
 
-            console.log(
-              `Attempt ${retryCount}/${maxRetries} failed with status ${status}`
-            );
+            if (process.env.NODE_ENV !== "production") {
+              console.debug(
+                `Attempt ${retryCount}/${maxRetries} failed with status ${status}`
+              );
+            }
 
             if (status === 404 && !retriedFallback && retryCount === 1) {
               // One-time retry: artifact might belong to a different workspace than provided in query
@@ -204,7 +199,9 @@ function EditArtifactContent() {
           const currentIds = (data.tags as number[] | undefined) || [];
           setSelectedTags(currentIds);
         } catch (e) {
-          console.warn("Tag load failed", e);
+          if (process.env.NODE_ENV !== "production") {
+            console.warn("Tag load failed", e);
+          }
         }
         // Initialize form fields depending on kind
         const base: EditArtifactFormData = {
@@ -227,7 +224,9 @@ function EditArtifactContent() {
         }
         form.reset(base);
       } catch (e: unknown) {
-        console.error(e);
+        if (process.env.NODE_ENV !== "production") {
+          console.error(e);
+        }
         const msg =
           typeof e === "object" && e && "message" in e
             ? String((e as { message?: unknown }).message)
@@ -300,7 +299,9 @@ function EditArtifactContent() {
       } catch {}
       router.push(`/w/${artifact.workspace}?env=${artifact.environment}`);
     } catch (e) {
-      console.error(e);
+      if (process.env.NODE_ENV !== "production") {
+        console.error(e);
+      }
       const maybe = e as { message?: string };
       setError(maybe?.message || "Save failed");
     } finally {
@@ -549,11 +550,6 @@ function EditArtifactContent() {
                                 code?: string;
                                 message?: string;
                               };
-                              console.warn(
-                                "Create tag failed (Enter):",
-                                maybe?.code || "",
-                                maybe?.message || err
-                              );
                               alert(maybe?.message || "Create tag failed");
                             } finally {
                               setTagSaving(false);
@@ -588,11 +584,6 @@ function EditArtifactContent() {
                               code?: string;
                               message?: string;
                             };
-                            console.warn(
-                              "Create tag failed:",
-                              maybe?.code || "",
-                              maybe?.message || e
-                            );
                             alert(maybe?.message || "Create tag failed");
                           } finally {
                             setTagSaving(false);

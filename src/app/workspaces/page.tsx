@@ -9,10 +9,7 @@ import { PlusCircle } from "lucide-react";
 import Link from "next/link";
 
 /**
- * Workspaces list page (placeholder implementation)
- *
- * TODO: Implement full workspaces list page with table view and filtering
- * This is a minimal implementation to satisfy type checking and routing
+ * Workspaces list page for managing artifact collections.
  */
 function WorkspacesListContent() {
   const { workspaces, loading, error } = useWorkspaces();

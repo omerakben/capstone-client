@@ -18,7 +18,6 @@ import { AuthGuard } from "@/components/AuthGuard";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-// Reveal dialog removed; keep only copy functionality
 import { EnvironmentToggle } from "@/components/ui/environment-toggle";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
@@ -52,10 +51,7 @@ import {
 } from "../../../components/ui/tabs";
 
 /**
- * Workspace detail page (placeholder implementation)
- *
- * TODO: Implement full workspace detail page with environment tabs and artifacts table
- * This is a minimal implementation to satisfy type checking and routing
+ * Workspace detail page with environment tabs and artifacts table.
  */
 const ALL_ENVS = ["DEV", "STAGING", "PROD"] as const;
 type EnvSlug = (typeof ALL_ENVS)[number];
@@ -73,7 +69,7 @@ function WorkspaceDetailContent() {
   const [loadingArtifacts, setLoadingArtifacts] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
-  // Reveal dialog removed; copy remains
+  // Copy support for ENV_VAR values
   const [copyingId, setCopyingId] = useState<number | null>(null);
   const [copiedId, setCopiedId] = useState<number | null>(null);
   const [kindFilter, setKindFilter] = useState<ArtifactKind | "ALL">("ALL");
@@ -107,7 +103,7 @@ function WorkspaceDetailContent() {
           });
         } catch {}
       } catch (err) {
-        console.error(err);
+        if (process.env.NODE_ENV !== "production") console.error(err);
         setError("Failed to load workspace");
         // allow retry if it failed (e.g., first call without auth)
         didLoadWorkspace.current = false;
@@ -136,7 +132,7 @@ function WorkspaceDetailContent() {
       });
       setArtifacts(data);
     } catch (err) {
-      console.error(err);
+      if (process.env.NODE_ENV !== "production") console.error(err);
       setError("Failed to load artifacts");
     } finally {
       setLoadingArtifacts(false);
@@ -204,7 +200,7 @@ function WorkspaceDetailContent() {
         setWorkspace(ws);
       } catch {}
     } catch (err) {
-      console.error(err);
+      if (process.env.NODE_ENV !== "production") console.error(err);
       alert("Delete failed");
     } finally {
       setActionLoading(null);
@@ -234,7 +230,7 @@ function WorkspaceDetailContent() {
         setWorkspace(ws);
       } catch {}
     } catch (err) {
-      console.error(err);
+      if (process.env.NODE_ENV !== "production") console.error(err);
       alert("Duplicate failed");
     } finally {
       setActionLoading(null);
@@ -270,7 +266,7 @@ function WorkspaceDetailContent() {
       setCopiedId(artifact.id);
       setTimeout(() => setCopiedId(null), 1200);
     } catch (err) {
-      console.error(err);
+      if (process.env.NODE_ENV !== "production") console.error(err);
       const maybe = err as { message?: string };
       alert(maybe?.message || "Copy failed");
     } finally {
@@ -565,7 +561,6 @@ function WorkspaceDetailContent() {
                               <div className="flex justify-end gap-2">
                                 {a.kind === "ENV_VAR" && (
                                   <>
-                                    {/* Reveal removed – keep only copy */}
                                     <Button
                                       variant="outline"
                                       size="icon"
@@ -631,7 +626,7 @@ function WorkspaceDetailContent() {
                 )}
               </CardContent>
             </Card>
-            {/* Reveal dialog removed */}
+            {/* End of artifacts table */}
           </TabsContent>
         </Tabs>
       </div>

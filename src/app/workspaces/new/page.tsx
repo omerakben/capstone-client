@@ -50,7 +50,9 @@ function CreateWorkspaceContent() {
       });
       router.push(`/w/${ws.id}`);
     } catch (error) {
-      console.error("Failed to create workspace", error);
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Failed to create workspace", error);
+      }
       form.setError("root", { message: "Creation failed. Try again." });
     } finally {
       setIsLoading(false);

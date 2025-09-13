@@ -37,7 +37,9 @@ export function ClipboardButton({
       setCopied(true);
       setTimeout(() => setCopied(false), 1600);
     } catch (e) {
-      console.error("Clipboard write failed", e);
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Clipboard write failed", e);
+      }
     }
   };
 

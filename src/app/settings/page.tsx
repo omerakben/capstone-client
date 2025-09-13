@@ -84,7 +84,9 @@ export default function SettingsPage() {
         description: `Workspace "${workspaceName}" has been exported.`,
       });
     } catch (error) {
-      console.error("Export failed:", error);
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Export failed:", error);
+      }
       toast({
         title: "Export Failed",
         description: "Failed to export workspace. Please try again.",
@@ -135,7 +137,9 @@ export default function SettingsPage() {
         description: `Workspace "${importData.workspace.name}" has been imported.`,
       });
     } catch (error) {
-      console.error("Import failed:", error);
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Import failed:", error);
+      }
       toast({
         title: "Import Failed",
         description:
@@ -163,7 +167,9 @@ export default function SettingsPage() {
       // Note: Actual account deletion would require backend API call
       // For now, we just sign the user out as a placeholder
     } catch (error) {
-      console.error("Account deletion failed:", error);
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Account deletion failed:", error);
+      }
       toast({
         title: "Deletion Failed",
         description: "Failed to delete account. Please try again.",
@@ -408,7 +414,9 @@ function WorkspaceExportList({
         const data = await listWorkspaces();
         setWorkspaces(data);
       } catch (error) {
-        console.error("Failed to load workspaces:", error);
+        if (process.env.NODE_ENV !== "production") {
+          console.error("Failed to load workspaces:", error);
+        }
         toast({
           title: "Error",
           description: "Failed to load workspaces.",
