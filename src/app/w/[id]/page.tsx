@@ -480,6 +480,7 @@ function WorkspaceDetailContent() {
                         <tr>
                           <th className="px-4 py-2 font-medium">Kind</th>
                           <th className="px-4 py-2 font-medium">Key / Title</th>
+                          <th className="px-4 py-2 font-medium">Tags</th>
                           <th className="px-4 py-2 font-medium">Updated</th>
                           <th className="px-4 py-2 font-medium text-right">
                             Actions
@@ -497,6 +498,27 @@ function WorkspaceDetailContent() {
                                 (a as Artifact & { title: string }).title}
                               {a.kind === "DOC_LINK" &&
                                 (a as Artifact & { title: string }).title}
+                            </td>
+                            <td className="px-4 py-2 align-middle">
+                              <div className="flex flex-wrap gap-1 max-w-xs">
+                                {(
+                                  (
+                                    a as Artifact & {
+                                      tag_objects?: {
+                                        id: number;
+                                        name: string;
+                                      }[];
+                                    }
+                                  )?.tag_objects || []
+                                ).map((t) => (
+                                  <span
+                                    key={t.id}
+                                    className="px-2 py-0.5 rounded-full bg-muted text-xs border"
+                                  >
+                                    {t.name}
+                                  </span>
+                                ))}
+                              </div>
                             </td>
                             <td className="px-4 py-2 align-middle">
                               {new Date(a.updated_at).toLocaleDateString()}

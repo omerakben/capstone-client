@@ -81,13 +81,45 @@ export async function createArtifact(
 export async function updateArtifact(
   workspaceId: number,
   id: number,
-  dto: Partial<CreateArtifactInput>
+  dto: Partial<CreateArtifactInput> & { tags?: number[] }
 ): Promise<Artifact> {
   const { data } = await http.patch<Artifact>(
     `/workspaces/${workspaceId}/artifacts/${id}/`,
     dto
   );
   return data;
+}
+
+// Tags (Many-to-Many)
+export interface Tag {
+  id: number;
+  name: string;
+  workspace: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function listTags(workspaceId: number): Promise<Tag[]> {
+  const { data } = await http.get(`/workspaces/${workspaceId}/artifacts/tags/`);
+  return Array.isArray(data) ? (data as Tag[]) : [];
+}
+
+export async function createTag(
+  workspaceId: number,
+  name: string
+): Promise<Tag> {
+  const { data } = await http.post<Tag>(
+    `/workspaces/${workspaceId}/artifacts/tags/`,
+    { name }
+  );
+  return data;
+}
+
+export async function deleteTag(
+  workspaceId: number,
+  tagId: number
+): Promise<void> {
+  await http.delete(`/workspaces/${workspaceId}/artifacts/tags/${tagId}/`);
 }
 
 export async function deleteArtifact(

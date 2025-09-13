@@ -8,6 +8,8 @@ export interface BaseArtifact {
   environment: EnvCode;
   updated_at: string;
   notes?: string;
+  tags?: number[]; // list of tag IDs
+  tag_objects?: { id: number; name: string }[]; // expanded from backend
 }
 
 export interface EnvVarArtifact extends BaseArtifact {

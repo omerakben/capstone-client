@@ -13,13 +13,17 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { SecretInput } from "@/components/ui/secret-input";
 import { Textarea } from "@/components/ui/textarea";
-import { updateArtifact } from "@/lib/api/artifacts";
+import {
+  createTag,
+  listTags,
+  updateArtifact,
+  type Tag,
+} from "@/lib/api/artifacts";
 import { http } from "@/lib/api/http";
-import type { Artifact, ArtifactKind } from "@/types/artifacts";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import type { EnvCode } from "@/types/artifacts";
+import type { Artifact, ArtifactKind, EnvCode } from "@/types/artifacts";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -62,6 +66,10 @@ function EditArtifactContent() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [allTags, setAllTags] = useState<Tag[]>([]);
+  const [selectedTags, setSelectedTags] = useState<number[]>([]);
+  const [newTagName, setNewTagName] = useState("");
+  const [tagSaving, setTagSaving] = useState(false);
 
   const form = useForm<EditArtifactFormData>({
     defaultValues: {},
@@ -81,6 +89,16 @@ function EditArtifactContent() {
           `/workspaces/${workspaceId}/artifacts/${artifactId}/`
         );
         setArtifact(data);
+        // Load tags in parallel
+        try {
+          const tags = await listTags(workspaceId);
+          setAllTags(tags);
+          // Initialize selected tags from artifact response if present
+          const currentIds = (data.tags as number[] | undefined) || [];
+          setSelectedTags(currentIds);
+        } catch (e) {
+          console.warn("Tag load failed", e);
+        }
         // Initialize form fields depending on kind
         const base: EditArtifactFormData = {
           notes: data.notes || "",
@@ -153,7 +171,10 @@ function EditArtifactContent() {
         setError("Missing workspace context.");
         return;
       }
-      await updateArtifact(workspaceId, artifact.id, data);
+      await updateArtifact(workspaceId, artifact.id, {
+        ...data,
+        tags: selectedTags,
+      });
       // Optionally warm the workspace request; actual refresh happens on landing
       try {
         await http.get(`/workspaces/${artifact.workspace}/`);
@@ -228,12 +249,26 @@ function EditArtifactContent() {
                     <FormItem>
                       <FormLabel>Environment</FormLabel>
                       <FormControl>
-                        <RadioGroup value={field.value} onValueChange={field.onChange} className="flex gap-6">
+                        <RadioGroup
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          className="flex gap-6"
+                        >
                           {(["DEV", "STAGING", "PROD"] as const).map((slug) => (
-                            <div key={slug} className="flex items-center space-x-2">
+                            <div
+                              key={slug}
+                              className="flex items-center space-x-2"
+                            >
                               <RadioGroupItem value={slug} id={`env-${slug}`} />
-                              <label htmlFor={`env-${slug}`} className="cursor-pointer">
-                                {slug === "DEV" ? "Development" : slug === "STAGING" ? "Staging" : "Production"}
+                              <label
+                                htmlFor={`env-${slug}`}
+                                className="cursor-pointer"
+                              >
+                                {slug === "DEV"
+                                  ? "Development"
+                                  : slug === "STAGING"
+                                  ? "Staging"
+                                  : "Production"}
                               </label>
                             </div>
                           ))}
@@ -361,6 +396,86 @@ function EditArtifactContent() {
                     </FormItem>
                   )}
                 />
+                {/* Tags Many-to-Many */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <FormLabel className="font-medium">Tags</FormLabel>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        placeholder="New tag"
+                        value={newTagName}
+                        onChange={(e) => setNewTagName(e.target.value)}
+                        className="h-8 w-40"
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        disabled={tagSaving || !newTagName.trim()}
+                        onClick={async () => {
+                          if (!workspaceId || !newTagName.trim()) return;
+                          setTagSaving(true);
+                          try {
+                            const t = await createTag(
+                              workspaceId,
+                              newTagName.trim()
+                            );
+                            setAllTags((prev) =>
+                              [...prev, t].sort((a, b) =>
+                                a.name.localeCompare(b.name)
+                              )
+                            );
+                            setSelectedTags((prev) => [
+                              ...new Set([...prev, t.id]),
+                            ]);
+                            setNewTagName("");
+                          } catch (e) {
+                            console.error(e);
+                            alert("Create tag failed");
+                          } finally {
+                            setTagSaving(false);
+                          }
+                        }}
+                      >
+                        {tagSaving && (
+                          <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                        )}
+                        Add
+                      </Button>
+                    </div>
+                  </div>
+                  {allTags.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">
+                      No tags yet.
+                    </p>
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {allTags.map((t) => {
+                        const active = selectedTags.includes(t.id);
+                        return (
+                          <button
+                            key={t.id}
+                            type="button"
+                            onClick={() =>
+                              setSelectedTags((prev) =>
+                                prev.includes(t.id)
+                                  ? prev.filter((id) => id !== t.id)
+                                  : [...prev, t.id]
+                              )
+                            }
+                            className={
+                              "px-3 py-1 rounded-full text-xs font-medium border transition-colors " +
+                              (active
+                                ? "bg-primary text-primary-foreground border-primary"
+                                : "bg-muted hover:bg-muted/70 border-muted-foreground/20 text-foreground")
+                            }
+                          >
+                            {t.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
                 {form.formState.errors.root && (
                   <div className="text-sm text-destructive">
                     {form.formState.errors.root.message}
