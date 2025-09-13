@@ -53,6 +53,13 @@ function DashboardContent() {
         setSearchResults([]);
         return;
       }
+
+      // Don't search if user is not authenticated
+      if (!user) {
+        setSearchResults([]);
+        return;
+      }
+
       try {
         setSearchLoading(true);
         const { results } = await searchArtifactsGlobal({ q: debouncedSearch });
@@ -65,7 +72,7 @@ function DashboardContent() {
       }
     };
     void run();
-  }, [debouncedSearch]);
+  }, [debouncedSearch, user]);
 
   // Filter workspaces based on search query - ensure workspaces is array
   const filteredWorkspaces = (

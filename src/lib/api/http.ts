@@ -10,7 +10,7 @@ export const http = axios.create({ baseURL });
 let signOutCallback: (() => Promise<void>) | null = null;
 
 export function attachAuth(
-  getToken: () => Promise<string | null>,
+  getToken: (force?: boolean) => Promise<string | null>,
   signOut?: () => Promise<void>
 ) {
   // Store signOut callback for 401 handling
@@ -19,10 +19,16 @@ export function attachAuth(
   }
 
   http.interceptors.request.use(async (config) => {
-    const token = await getToken();
+    const token = await getToken(false); // Don't force on regular requests
     if (token) {
       config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
+    } else {
+      // Log when requests are made without authentication
+      console.warn(
+        "Making API request without authentication token:",
+        config.url
+      );
     }
     return config;
   });
@@ -34,7 +40,7 @@ export function attachAuth(
       if (error.response?.status === 401 && signOutCallback) {
         try {
           // Try to get a fresh token first
-          const freshToken = await getToken();
+          const freshToken = await getToken(true); // Force refresh for 401
           if (!freshToken) {
             // No token available, sign out
             await signOutCallback();
@@ -67,15 +73,25 @@ export function attachAuth(
             return Promise.reject(err);
           }
 
-          const freshToken = await getToken();
+          // Force refresh token for 403 errors
+          const freshToken = await getToken(true); // Force refresh
           if (freshToken) {
             originalRequest._retry403 = true;
             originalRequest.headers = originalRequest.headers || {};
             originalRequest.headers.Authorization = `Bearer ${freshToken}`;
             return http(originalRequest);
+          } else {
+            // No token available, sign out if we have a callback
+            if (signOutCallback) {
+              await signOutCallback();
+            }
           }
-        } catch {
-          // fall through to normalized error
+        } catch (refreshError) {
+          console.error("Token refresh failed during 403 retry:", refreshError);
+          // If we have signOut callback, use it
+          if (signOutCallback) {
+            await signOutCallback();
+          }
         }
       }
 
@@ -92,13 +108,15 @@ export interface NormalizedError {
   details?: unknown;
 }
 
-type ErrorData = {
-  code?: string | number;
-  message?: string;
-  detail?: string;
-  errors?: Record<string, unknown> | string;
-  [key: string]: unknown;
-} | undefined;
+type ErrorData =
+  | {
+      code?: string | number;
+      message?: string;
+      detail?: string;
+      errors?: Record<string, unknown> | string;
+      [key: string]: unknown;
+    }
+  | undefined;
 
 function normalizeError(err: unknown): NormalizedError {
   const maybe = err as {
