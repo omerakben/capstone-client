@@ -4,8 +4,13 @@ import {
   Check,
   Copy,
   Files,
+  FileText,
+  KeyRound,
+  Layers,
   Loader2,
+  MessageSquare,
   Pencil,
+  PlusCircle,
   Trash2,
 } from "lucide-react";
 
@@ -14,6 +19,7 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 // Reveal dialog removed; keep only copy functionality
+import { EnvironmentToggle } from "@/components/ui/environment-toggle";
 import { Input } from "@/components/ui/input";
 import {
   deleteArtifact,
@@ -27,6 +33,7 @@ import {
   updateEnabledEnvironments,
   type Workspace,
 } from "@/lib/api/workspaces";
+import { ENV_COLORS } from "@/types";
 import type {
   Artifact,
   ArtifactKind,
@@ -71,6 +78,7 @@ function WorkspaceDetailContent() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [envForm, setEnvForm] = useState<EnabledFormState | null>(null);
+  const [savedFlash, setSavedFlash] = useState(false);
 
   const currentEnv: EnvCode = useMemo(() => {
     const env = (searchParams.get("env") as EnvCode) || "DEV";
@@ -144,6 +152,8 @@ function WorkspaceDetailContent() {
       await updateEnabledEnvironments(workspaceId, Array.from(enabled));
       const ws = await getWorkspace(workspaceId);
       setWorkspace(ws);
+      setSavedFlash(true);
+      setTimeout(() => setSavedFlash(false), 1400);
     } catch (err) {
       const msg =
         err instanceof Error ? err.message : "Failed to update environments";
@@ -253,20 +263,15 @@ function WorkspaceDetailContent() {
                   {workspace?.name}
                 </h1>
                 <p className="text-muted-foreground">
-                  Artifacts ({currentEnv})
+                  Artifacts (
+                  <span className={ENV_COLORS[currentEnv].text}>
+                    {currentEnv}
+                  </span>
+                  )
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button
-                asChild
-                variant="primarySoft"
-                className="px-5 py-2 rounded-lg"
-              >
-                <Link href={`/w/${workspaceId}/new?env=${currentEnv}`}>
-                  New Artifact
-                </Link>
-              </Button>
               <Button
                 variant="danger"
                 className="px-4 py-2 rounded-lg"
@@ -299,67 +304,112 @@ function WorkspaceDetailContent() {
         </div>
         {/* Enabled Environments mini-form */}
         <div className="mb-4 p-3 border rounded-lg">
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <div className="font-medium">Enabled Environments</div>
-            <div className="text-xs text-muted-foreground">
-              Available for this workspace
-            </div>
-          </div>
-          <div className="mt-2 flex items-center gap-4">
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <span className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+              Environments:
+            </span>
             {envForm &&
               ALL_ENVS.map((slug) => (
-                <label key={slug} className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={envForm[slug]}
-                    onChange={(e) =>
-                      setEnvForm((prev) =>
-                        prev ? { ...prev, [slug]: e.target.checked } : prev
-                      )
-                    }
-                  />
-                  {slug}
-                </label>
+                <EnvironmentToggle
+                  key={slug}
+                  env={slug}
+                  size="sm"
+                  checked={envForm[slug]}
+                  onChange={(next) =>
+                    setEnvForm((prev) =>
+                      prev ? { ...prev, [slug]: next } : prev
+                    )
+                  }
+                />
               ))}
-            <Button
-              size="sm"
-              className="ml-auto"
-              onClick={handleSaveEnabledEnvs}
-            >
-              Save
-            </Button>
+            {(() => {
+              const original = new Set(
+                (workspace?.enabled_environments || []).map((e) => e.slug)
+              );
+              const current = new Set(
+                envForm ? ALL_ENVS.filter((e) => envForm[e]) : ALL_ENVS
+              );
+              const isDirty =
+                original.size !== current.size ||
+                ALL_ENVS.some((e) => original.has(e) !== current.has(e));
+              return (
+                <Button
+                  size="sm"
+                  variant={isDirty ? "default" : "outline"}
+                  className={
+                    "relative h-7 px-4 text-foreground transition-colors border-black dark:border-neutral-300 " +
+                    (isDirty
+                      ? "bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
+                      : "hover:bg-muted/70")
+                  }
+                  onClick={handleSaveEnabledEnvs}
+                  disabled={!envForm || !isDirty}
+                >
+                  {savedFlash && !isDirty
+                    ? "Saved"
+                    : isDirty
+                    ? "Save"
+                    : "Saved"}
+                </Button>
+              );
+            })()}
           </div>
         </div>
         {/* Type filter chips */}
-        <div className="mb-4 flex flex-wrap gap-2">
+        <div className="mb-2 flex flex-wrap gap-2 items-center">
           {(
             [
-              { code: "ALL", label: "All" },
-              { code: "ENV_VAR", label: "Env Vars" },
-              { code: "PROMPT", label: "Prompts" },
-              { code: "DOC_LINK", label: "Docs" },
-            ] as Array<{ code: ArtifactKind | "ALL"; label: string }>
-          ).map((opt) => (
+              { code: "ALL", label: "All", icon: Layers },
+              { code: "ENV_VAR", label: "Env Vars", icon: KeyRound },
+              { code: "PROMPT", label: "Prompts", icon: MessageSquare },
+              { code: "DOC_LINK", label: "Docs", icon: FileText },
+            ] as Array<{
+              code: ArtifactKind | "ALL";
+              label: string;
+              icon: React.ComponentType<{ className?: string }>;
+            }>
+          ).map((opt) => {
+            const ActiveIcon = opt.icon;
+            const active = kindFilter === opt.code;
+            return (
+              <Button
+                key={opt.code}
+                variant={active ? "outline" : "ghost"}
+                size="sm"
+                className={
+                  (active
+                    ? "border-2 border-primary bg-primary/10 text-foreground "
+                    : "text-muted-foreground hover:text-foreground ") +
+                  "inline-flex items-center gap-1.5"
+                }
+                onClick={() => setKindFilter(opt.code)}
+              >
+                <ActiveIcon className="h-4 w-4" />
+                {opt.label}
+              </Button>
+            );
+          })}
+          <div className="ml-auto flex items-center">
             <Button
-              key={opt.code}
-              variant={kindFilter === opt.code ? "outline" : "ghost"}
+              asChild
               size="sm"
-              className={
-                kindFilter === opt.code
-                  ? "border-2 border-primary bg-primary/10 text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              }
-              onClick={() => setKindFilter(opt.code)}
+              className="px-4 font-medium relative overflow-hidden border-2 border-black dark:border-white bg-gradient-to-b from-white to-neutral-100 dark:from-neutral-900 dark:to-neutral-800 hover:from-neutral-50 hover:to-neutral-100 dark:hover:from-neutral-800 dark:hover:to-neutral-700 shadow-xs group transition-colors"
             >
-              {opt.label}
+              <Link
+                href={`/w/${workspaceId}/new?env=${currentEnv}`}
+                className="flex items-center gap-1.5"
+              >
+                <PlusCircle className="h-4 w-4 transition-transform group-hover:scale-110" />
+                <span>New Artifact</span>
+              </Link>
             </Button>
-          ))}
+          </div>
         </div>
         <Tabs
           value={currentEnv}
           onValueChange={(v: string) => onEnvChange(v as EnvCode)}
         >
-          <TabsList>
+          <TabsList className="inline-flex h-10 items-center justify-center rounded-full bg-muted p-1 text-muted-foreground">
             {(workspace?.enabled_environments?.length
               ? workspace.enabled_environments
               : [
@@ -379,17 +429,30 @@ function WorkspaceDetailContent() {
                     display_order: 2,
                   },
                 ]
-            ).map((env) => (
-              <TabsTrigger key={env.slug} value={env.slug}>
-                {env.slug}
-                {workspace?.artifact_counts?.by_environment?.[env.slug] !==
-                  undefined && (
-                  <span className="ml-2 text-xs text-muted-foreground">
-                    {workspace.artifact_counts.by_environment[env.slug]}
-                  </span>
-                )}
-              </TabsTrigger>
-            ))}
+            ).map((env) => {
+              const active = currentEnv === env.slug;
+              const colors = ENV_COLORS[env.slug as EnvCode];
+              return (
+                <TabsTrigger
+                  key={env.slug}
+                  value={env.slug}
+                  className={
+                    "rounded-full px-3 py-1 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors " +
+                    (active
+                      ? `border-2 ${colors.bg} ${colors.text} ${colors.border} shadow-sm hover:shadow`
+                      : "text-muted-foreground hover:bg-muted/60 hover:text-foreground")
+                  }
+                >
+                  {env.slug}
+                  {workspace?.artifact_counts?.by_environment?.[env.slug] !==
+                    undefined && (
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      {workspace.artifact_counts.by_environment[env.slug]}
+                    </span>
+                  )}
+                </TabsTrigger>
+              );
+            })}
           </TabsList>
           <TabsContent value={currentEnv} className="mt-6">
             <Card>

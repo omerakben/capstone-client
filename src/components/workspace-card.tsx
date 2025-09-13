@@ -19,8 +19,23 @@ interface WorkspaceCardProps {
  * Inspired by modern card patterns with hover states
  */
 export function WorkspaceCard({ workspace, className }: WorkspaceCardProps) {
-  // Mock environment data - in real app this would come from API
-  const environments: EnvCode[] = ["DEV", "STAGING", "PROD"];
+  // Narrow workspace shape for environments (optional if not returned by API version)
+  const ws = workspace as Workspace & {
+    workspace_environments?: Array<{ environment_type?: { slug?: string } }>;
+  };
+  let environments: EnvCode[] = (ws.workspace_environments || [])
+    .map(
+      (we: { environment_type?: { slug?: string } }) =>
+        we.environment_type?.slug
+    )
+    .filter(
+      (s: string | undefined): s is EnvCode =>
+        !!s && ["DEV", "STAGING", "PROD"].includes(s as EnvCode)
+    );
+  // If API hasn't supplied specific environments yet (loading/legacy), show all for consistent card layout
+  if (environments.length === 0) {
+    environments = ["DEV", "STAGING", "PROD"];
+  }
   const artifactCount = workspace.artifact_counts?.total ?? 0;
 
   return (
