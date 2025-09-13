@@ -343,7 +343,7 @@ function WorkspaceDetailContent() {
         {error && <div className="mb-4 text-sm text-destructive">{error}</div>}
         <div className="mb-4 max-w-md">
           <Input
-            placeholder="Search artifacts (key, title, content, notes, url)"
+            placeholder="Search artifacts (key, title, content, notes, url, tags)"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
