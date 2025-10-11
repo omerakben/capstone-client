@@ -1,3 +1,4 @@
+import { DemoBanner } from "@/components/DemoBanner";
 import { HttpAuthProvider } from "@/components/HttpAuthProvider";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Toaster } from "@/components/ui/use-toast";
@@ -50,6 +51,7 @@ export default function RootLayout({
       >
         <AuthProvider>
           <HttpAuthProvider>
+            <DemoBanner />
             <SiteHeader />
             {children}
             <Toaster />
