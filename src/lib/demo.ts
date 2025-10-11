@@ -3,21 +3,36 @@
  * Provides seamless demo access for recruiters and evaluators
  */
 
-import { getAuth, signInWithEmailAndPassword, type User } from 'firebase/auth';
+import { type User } from 'firebase/auth';
 
 // Demo account credentials
 const DEMO_EMAIL = 'demo@deadline.demo';
-const DEMO_PASSWORD = process.env.NEXT_PUBLIC_DEMO_PASSWORD || 'DeadlineDemo2025!'; // Fallback for dev
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 /**
  * Authenticate as demo user
  * Provides instant access for recruiters without signup friction
+ * Uses backend session-based authentication in demo mode
  */
 export async function loginAsDemoUser(): Promise<void> {
-  const auth = getAuth();
-
   try {
-    await signInWithEmailAndPassword(auth, DEMO_EMAIL, DEMO_PASSWORD);
+    const response = await fetch(`${API_URL}/api/v1/auth/demo/login/`, {
+      method: 'POST',
+      credentials: 'include', // Important for session cookies
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Demo login failed: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log('Demo login successful:', data);
+
+    // Redirect to dashboard after successful login
+    window.location.href = '/dashboard';
   } catch (error) {
     console.error('Demo login failed:', error);
     throw new Error('Unable to access demo mode. Please try again or create an account.');
